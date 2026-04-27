@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Grocery app GitHub issue aliases
+# GitHub issue aliases for the current project
 # Usage: source gh-aliases.sh
-# Requires: gh CLI authenticated
+# Requires: gh CLI authenticated, run from project root
 
-REPO="marvinmednick/grocerylist"
+REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || git remote get-url origin 2>/dev/null | sed 's|.*github.com[:/]\(.*\)\.git|\1|')
 
 # All open issues (default view)
 alias gi='gh issue list --state open'
