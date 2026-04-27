@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+# verify-links — Check that all workflow-template symlinks are correct
+#
+# Run from the project root to verify all expected symlinks are in place
+# and pointing to the right targets in ~/.workflow-template.
+# Offers to fix any issues found.
+
+set -euo pipefail
+
+TEMPLATE="$HOME/.workflow-template"
+ISSUES=()
+OK=0
+
+if [[ ! -d "$TEMPLATE" ]]; then
+  echo "Error: ~/.workflow-template not found."
+  echo "Run: git clone https://github.com/marvinmednick/workflow-template ~/.workflow-template"
+  exit 1
+fi
+
+check_link() {
+  local local_path="$1"
+  local expected_target="$2"
+
+  if [[ -L "$local_path" ]]; then
+    actual_target=$(readlink "$local_path")
+    if [[ "$actual_target" == "$expected_target" ]]; then
+      if [[ -e "$local_path" ]]; then
+        echo "  ✓ $local_path"
+        OK=$((OK + 1))
+      else
+        echo "  ✗ $local_path → $actual_target  (dangling — target missing)"
+        ISSUES+=("$local_path|$expected_target|dangling")
+      fi
+    else
+      echo "  ✗ $local_path → $actual_target"
+      echo "    expected → $expected_target"
+      ISSUES+=("$local_path|$expected_target|wrong")
+    fi
+  elif [[ -e "$local_path" ]]; then
+    echo "  ✗ $local_path  (real file — not a symlink; remove manually to replace)"
+    ISSUES+=("$local_path|$expected_target|not-symlink")
+  else
+    echo "  ✗ $local_path  (missing)"
+    ISSUES+=("$local_path|$expected_target|missing")
+  fi
+}
+
+echo "=== Commands ==="
+for cmd in complete.md design.md design-review.md feature.md fix-baseline.md \
+           investigate.md resolve.md review-plan.md spec.md triage.md review.md; do
+  check_link "commands/$cmd" "$TEMPLATE/$cmd"
+done
+
+echo ""
+echo "=== Scripts ==="
+for script in implement check-tests gh-aliases.sh update-workflow verify-links; do
+  check_link "./$script" "$TEMPLATE/scripts/$script"
+done
+
+echo ""
+echo "=== Claude Code stubs ==="
+for stub in complete.md design.md design-review.md feature.md fix-baseline.md \
+            investigate.md resolve.md review-impl.md review-plan.md spec.md triage.md; do
+  check_link ".claude/commands/$stub" "$TEMPLATE/claude-stubs/$stub"
+done
+
+echo ""
+echo "=== Configs ==="
+check_link ".aider.conf.yml"          "$TEMPLATE/configs/.aider.conf.yml"
+check_link ".gemini/settings.json"    "$TEMPLATE/configs/.gemini/settings.json"
+check_link ".codex/config.toml"       "$TEMPLATE/configs/.codex/config.toml"
+
+echo ""
+if [[ ${#ISSUES[@]} -eq 0 ]]; then
+  echo "All $OK symlinks correct."
+  exit 0
+fi
+
+FIXABLE=0
+SKIPPED=0
+for issue in "${ISSUES[@]}"; do
+  IFS='|' read -r _ _ kind <<< "$issue"
+  if [[ "$kind" == "not-symlink" ]]; then
+    SKIPPED=$((SKIPPED + 1))
+  else
+    FIXABLE=$((FIXABLE + 1))
+  fi
+done
+
+echo "${#ISSUES[@]} issue(s) found ($FIXABLE fixable, $SKIPPED require manual removal)."
+echo ""
+
+if [[ $FIXABLE -eq 0 ]]; then
+  echo "All issues require manual intervention (real files must be removed before symlinking)."
+  exit 1
+fi
+
+read -r -p "Fix $FIXABLE issue(s) now? [y/N] " answer
+if [[ "$answer" != "y" && "$answer" != "Y" ]]; then
+  echo "No changes made."
+  exit 1
+fi
+
+echo ""
+echo "Fixing..."
+for issue in "${ISSUES[@]}"; do
+  IFS='|' read -r local_path expected_target kind <<< "$issue"
+  if [[ "$kind" == "not-symlink" ]]; then
+    echo "  skipped $local_path  (remove the real file first)"
+    continue
+  fi
+  mkdir -p "$(dirname "$local_path")"
+  ln -sf "$expected_target" "$local_path"
+  echo "  linked $local_path → $expected_target"
+done
+echo "Done."
