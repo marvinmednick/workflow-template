@@ -25,13 +25,16 @@ git clone https://github.com/marvinmednick/workflow-template ~/.workflow-templat
 # 3. Copy and customize the skeleton files
 cp ~/.workflow-template/skeleton/.implement.conf .implement.conf
 cp ~/.workflow-template/skeleton/REVIEW-template.md REVIEW.md
-# Edit both files with project-specific values
+cp ~/.workflow-template/skeleton/WORKFLOW-template.md WORKFLOW.md
+cp ~/.workflow-template/skeleton/AGENT-template.md AGENT.md
+cp ~/.workflow-template/skeleton/CODING-template.md CODING.md
+cp ~/.workflow-template/skeleton/DESIGN-template.md DESIGN.md
+# Edit each file — fill in project-specific content
 
-# 4. Create your project files
-# AGENT.md   — behavioral rules for the implementor
-# CODING.md  — coding conventions and patterns
-# DESIGN.md  — architecture and design reference
-# CLAUDE.md  — Claude Code session guidance
+# 4. Create CLAUDE.md for Claude Code session guidance
+
+# 5. Verify all symlinks are correct
+./verify-links
 ```
 
 ## Updating an existing project
@@ -55,12 +58,25 @@ git commit -m "improve: ..."
 git push
 ```
 
+## Verifying symlinks
+
+After setup or after cloning to a new machine, confirm all expected symlinks are correct:
+
+```bash
+./verify-links
+```
+
+Reports each symlink as ✓ (correct), or ✗ with the reason (missing, wrong target, dangling,
+or real file). Offers to fix all fixable issues in one pass. Real files (not symlinks) must
+be removed manually before they can be replaced.
+
 ## New machine setup
 
 ```bash
 git clone https://github.com/marvinmednick/workflow-template ~/.workflow-template
 cd <project>
 ~/.workflow-template/scripts/setup.sh   # recreates all symlinks
+./verify-links                          # confirm everything is correct
 ```
 
 ## Project-specific files (not in this repo)
@@ -71,6 +87,7 @@ Each project owns these files — they are never synced from this repo:
 |------|---------|
 | `REVIEW.md` | Project-specific review checklist (read by `/review-impl` and built-in `/review`) |
 | `.implement.conf` | Tool, model, test command, file path pattern |
+| `WORKFLOW.md` | Project workflow guide (commands, use cases, file reference) |
 | `AGENT.md` | Implementor behavioral rules |
 | `CODING.md` | Coding conventions |
 | `DESIGN.md` | Architecture reference |
