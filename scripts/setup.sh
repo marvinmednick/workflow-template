@@ -19,6 +19,15 @@ if [[ ! -d "$TEMPLATE" ]]; then
   exit 1
 fi
 
+echo "Linking commands/..."
+mkdir -p commands
+for cmd in complete.md design.md design-review.md feature.md fix-baseline.md \
+           investigate.md resolve.md review-plan.md spec.md triage.md review.md; do
+  ln -sf "$TEMPLATE/$cmd" "commands/$cmd"
+  echo "  linked commands/$cmd"
+done
+
+echo ""
 echo "Linking scripts..."
 for script in implement check-tests gh-aliases.sh update-workflow; do
   ln -sf "$TEMPLATE/scripts/$script" "./$script"
@@ -52,7 +61,6 @@ echo ""
 echo "Done. Symlinks created."
 echo ""
 echo "Next steps for a new project:"
-echo "  1. git subtree add --prefix=commands https://github.com/marvinmednick/workflow-template main --squash"
-echo "  2. Copy skeleton/REVIEW-template.md to REVIEW.md and fill in project-specific checklist"
-echo "  3. Copy skeleton/.implement.conf to .implement.conf and set tool, model, TEST_CMD, KNOWN_FILE, SPEC_FILE_PATTERN"
-echo "  4. Create AGENT.md, CODING.md, DESIGN.md for your project"
+echo "  1. Copy skeleton/REVIEW-template.md to REVIEW.md and fill in project-specific checklist"
+echo "  2. Copy skeleton/.implement.conf to .implement.conf and set tool, model, TEST_CMD, KNOWN_FILE, SPEC_FILE_PATTERN"
+echo "  3. Create AGENT.md, CODING.md, DESIGN.md for your project"

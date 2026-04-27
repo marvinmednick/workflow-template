@@ -6,7 +6,7 @@ Shared Claude Code workflow commands and scripts for the two-role development wo
 ## What's in here
 
 ```
-*.md                  # Generic workflow commands (become commands/ in projects via git subtree)
+*.md                  # Generic workflow commands (symlinked into commands/ in projects)
 scripts/              # Shell scripts (symlinked into project root)
 configs/              # Generic config files (symlinked into project root)
 claude-stubs/         # Claude Code command stubs (symlinked into .claude/commands/)
@@ -19,18 +19,15 @@ skeleton/             # Starting-point files for new projects (copy and customiz
 # 1. Clone this repo to a stable local location (one-time per machine)
 git clone https://github.com/marvinmednick/workflow-template ~/.workflow-template
 
-# 2. In your project directory, add the commands/ subtree
-git subtree add --prefix=commands https://github.com/marvinmednick/workflow-template main --squash
-
-# 3. Create symlinks for scripts, stubs, and configs
+# 2. In your project directory, create all symlinks (commands/, scripts, stubs, configs)
 ~/.workflow-template/scripts/setup.sh
 
-# 4. Copy and customize the skeleton files
+# 3. Copy and customize the skeleton files
 cp ~/.workflow-template/skeleton/.implement.conf .implement.conf
 cp ~/.workflow-template/skeleton/REVIEW-template.md REVIEW.md
 # Edit both files with project-specific values
 
-# 5. Create your project files
+# 4. Create your project files
 # AGENT.md   — behavioral rules for the implementor
 # CODING.md  — coding conventions and patterns
 # DESIGN.md  — architecture and design reference
@@ -43,15 +40,19 @@ cp ~/.workflow-template/skeleton/REVIEW-template.md REVIEW.md
 ./update-workflow
 ```
 
-This pulls the latest `~/.workflow-template` clone (instantly updates all symlinked files)
-and syncs the `commands/` subtree.
+This pulls the latest `~/.workflow-template` clone. Since all files (commands/, scripts,
+stubs, configs) are symlinks into that clone, they update instantly — no further steps needed.
 
 ## Pushing a local command improvement upstream
 
-If you improve a generic command in `commands/` and want to share it back:
+If you edit a generic command in `commands/` (remember: it's a symlink, so you're editing
+`~/.workflow-template/<name>.md` directly), commit and push the shared repo:
 
 ```bash
-git subtree push --prefix=commands https://github.com/marvinmednick/workflow-template main
+cd ~/.workflow-template
+git add <name>.md
+git commit -m "improve: ..."
+git push
 ```
 
 ## New machine setup

@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 # update-workflow — Pull latest workflow-template updates into this project
 #
-# Two things happen:
-#   1. The ~/.workflow-template clone is updated (instantly updates all symlinked scripts/stubs/configs)
-#   2. The commands/ git subtree is synced from the shared repo
+# Pulls the ~/.workflow-template clone — all symlinked files (commands/, scripts,
+# stubs, configs) update instantly since they are symlinks into that clone.
 #
 # Run from the project root.
 
@@ -20,9 +19,4 @@ fi
 
 echo "Updating workflow-template clone..."
 git -C "$TEMPLATE" pull --quiet
-echo "  ✓ scripts, stubs, and configs up to date (symlinks auto-updated)"
-
-echo ""
-echo "Pulling commands/ subtree..."
-git subtree pull --prefix=commands "$REMOTE" main --squash
-echo "  ✓ commands/ up to date"
+echo "  ✓ All symlinked files up to date (commands/, scripts, stubs, configs)"
