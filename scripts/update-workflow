@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# update-workflow — Pull latest workflow-template updates into this project
+#
+# Two things happen:
+#   1. The ~/.workflow-template clone is updated (instantly updates all symlinked scripts/stubs/configs)
+#   2. The commands/ git subtree is synced from the shared repo
+#
+# Run from the project root.
+
+set -euo pipefail
+
+REMOTE="https://github.com/marvinmednick/workflow-template"
+TEMPLATE="$HOME/.workflow-template"
+
+if [[ ! -d "$TEMPLATE" ]]; then
+  echo "Error: ~/.workflow-template not found."
+  echo "Run: git clone $REMOTE ~/.workflow-template"
+  exit 1
+fi
+
+echo "Updating workflow-template clone..."
+git -C "$TEMPLATE" pull --quiet
+echo "  ✓ scripts, stubs, and configs up to date (symlinks auto-updated)"
+
+echo ""
+echo "Pulling commands/ subtree..."
+git subtree pull --prefix=commands "$REMOTE" main --squash
+echo "  ✓ commands/ up to date"
