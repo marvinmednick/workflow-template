@@ -181,10 +181,15 @@ File: [path/to/__tests__/FeatureName-test.ext]
 ```
 
 ### Deferred Items
-List anything intentionally left out of this spec that was **discussed and explicitly descoped** during the design or spec conversation. After writing the spec, append each item to BACKLOG.md under "Deferred from Specs" in this format:
+List anything intentionally left out of this spec that was **discussed and explicitly descoped** during the design or spec conversation.
+
+In the spec file, write this section as a plain bullet list — do NOT include "Append to BACKLOG.md" instructions; the implementor should not touch BACKLOG.md.
+
+After writing the spec file, Claude appends each item to BACKLOG.md under "Deferred from Specs":
 ```
 - [ ] [Description] — [reason]. (deferred from F[N])
 ```
+This is a Claude action at spec-write time, already done before the implementor sees the spec.
 
 ### Suggestions (AI-generated)
 If Claude identified enhancement ideas during spec writing that were **not discussed with the user**, list them separately under this heading. These are Claude's own suggestions, not agreed-upon deferred work.

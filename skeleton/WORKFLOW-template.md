@@ -260,9 +260,9 @@ All workflow commands are available in both **Claude Code** and **Codex CLI**:
 | `/review-plan F1` | `$review-plan F1` | Review an implementation plan |
 | `/triage 18 19` | `$triage 18 19` | Assess severity/effort for bugs |
 
-**How it works:** Command instructions live in `commands/*.md` (single source of truth, symlinked from `~/.workflow-template`). Both tools reference these shared files through thin wrappers.
+**How it works:** Command instructions live in `commands/*.md` (single source of truth, symlinked from the workflow-template clone). Both tools reference these shared files through thin wrappers.
 
-**Updating a command:** Edit `~/.workflow-template/<command>.md` and `git push` — all projects using symlinks pick up the change.
+**Updating a command:** Edit `<command>.md` in the workflow-template clone and `git push` — all projects using symlinks pick up the change instantly.
 
 ---
 
@@ -276,7 +276,7 @@ All workflow commands are available in both **Claude Code** and **Codex CLI**:
 | `AGENT.md` | Starting any implementation session — behavioral rules |
 | `CODING.md` | Starting any implementation session — coding conventions |
 | `REVIEW.md` | Project-specific review checklist (read by `/review-impl`) |
-| `commands/*.md` | Shared command instructions — symlinked from `~/.workflow-template` |
+| `commands/*.md` | Shared command instructions — symlinked from the workflow-template clone |
 | `PLAN.md` | Checking feature status or finding the right spec |
 | `BACKLOG.md` | Looking for small tasks to clean up |
 | `docs/design-history.md` | Understanding why a design decision was made |

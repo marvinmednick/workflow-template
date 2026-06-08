@@ -2,6 +2,15 @@
 
 Architecture and design reference. Read before implementing any new feature or modifying core patterns. Keep this file current — update it when patterns change, not just when adding new ones.
 
+> **Multi-file variant:** For projects with rich existing architecture docs, replace this file's body with a pointer to an `architecture/` directory (see below). The workflow commands (`/spec`, `/design`) check both `DESIGN.md` and `architecture/README.md` for context.
+>
+> ```markdown
+> This project uses an `architecture/` directory instead of a single DESIGN.md.
+> See [architecture/README.md](architecture/README.md) for the full index.
+> ## Quick Summary
+> [2–3 sentence overview]
+> ```
+
 ---
 
 ## Overview

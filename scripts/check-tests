@@ -64,39 +64,41 @@ cp "$RAW_OUTPUT" "$LAST_OUTPUT"
 
 echo ""
 
-# Extract failures from Jest output.
-# Jest formats individual test failures as:
-#   ● <suite-name> › <test-name>
-# And suite-level failures (can't parse/run) as:
-#   ● Test suite failed to run
-# We capture both in context with their suite file.
-python3 - "$RAW_OUTPUT" "$FAILURES_FILE" << 'PYEOF'
+# Detect test framework from TEST_CMD and extract failures accordingly.
+# Pytest:  FAILED tests/path.py::TestClass::test_name
+# Jest:    ● SuiteName › testName  (preceded by FAIL <suite-file>)
+python3 - "$RAW_OUTPUT" "$FAILURES_FILE" "$TEST_CMD" << 'PYEOF'
 import sys, re
 
 raw_file = sys.argv[1]
 out_file  = sys.argv[2]
+test_cmd  = sys.argv[3] if len(sys.argv) > 3 else ""
 
 with open(raw_file) as f:
     lines = f.readlines()
 
-current_suite = None
 failures = []
 
-for i, line in enumerate(lines):
-    # FAIL line names the suite file
-    m = re.match(r'^(FAIL|PASS)\s+(.+)$', line.strip())
-    if m:
-        current_suite = m.group(2).strip()
-
-    # Individual test failure — must match "● SuiteName › testName" pattern
-    m2 = re.match(r'^\s+● (.+)$', line)
-    if m2 and current_suite:
-        test_name = m2.group(1).strip()
-        if test_name == 'Test suite failed to run':
-            failures.append(f'[SUITE_RUN_FAILURE] {current_suite}')
-        elif ' › ' in test_name:
-            # Only genuine test case failures (contain the › separator)
-            failures.append(f'[SUITE] {current_suite} | {test_name}')
+if 'pytest' in test_cmd:
+    # Pytest output: lines starting with "FAILED " contain the test node id
+    for line in lines:
+        m = re.match(r'^FAILED (.+?)(?:\s+-\s+.+)?$', line.strip())
+        if m:
+            failures.append(m.group(1).strip())
+else:
+    # Jest output: ● markers preceded by FAIL/PASS suite lines
+    current_suite = None
+    for line in lines:
+        m = re.match(r'^(FAIL|PASS)\s+(.+)$', line.strip())
+        if m:
+            current_suite = m.group(2).strip()
+        m2 = re.match(r'^\s+● (.+)$', line)
+        if m2 and current_suite:
+            test_name = m2.group(1).strip()
+            if test_name == 'Test suite failed to run':
+                failures.append(f'[SUITE_RUN_FAILURE] {current_suite}')
+            elif ' › ' in test_name:
+                failures.append(f'[SUITE] {current_suite} | {test_name}')
 
 with open(out_file, 'w') as f:
     for failure in failures:
@@ -176,12 +178,18 @@ TOTAL_FAILURES=${#SEEN_FAILURES[@]}
 TOTAL_UNEXPECTED=${#UNEXPECTED[@]}
 TOTAL_KNOWN=${#KNOWN_SEEN[@]}
 
-# Extract pass count from Jest summary line (e.g. "Tests:  146 passed, 146 total")
+# Extract pass/skip counts — supports both Jest ("Tests: N passed") and pytest ("N passed")
 PASS_COUNT=$(grep -E '^Tests:' "$RAW_OUTPUT" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || true)
+if [[ -z "$PASS_COUNT" ]]; then
+  # pytest summary line: "5 passed, 2 failed in 1.23s" or "5 passed in 1.23s"
+  PASS_COUNT=$(grep -oE '[0-9]+ passed' "$RAW_OUTPUT" | tail -1 | grep -oE '[0-9]+' || true)
+fi
 [[ -z "$PASS_COUNT" ]] && PASS_COUNT="?"
 
-# Extract skip count (e.g. "Tests:  7 skipped, 589 passed, 596 total")
 SKIP_COUNT=$(grep -E '^Tests:' "$RAW_OUTPUT" | grep -oE '[0-9]+ skipped' | grep -oE '[0-9]+' || true)
+if [[ -z "$SKIP_COUNT" ]]; then
+  SKIP_COUNT=$(grep -oE '[0-9]+ skipped' "$RAW_OUTPUT" | tail -1 | grep -oE '[0-9]+' || true)
+fi
 [[ -z "$SKIP_COUNT" ]] && SKIP_COUNT=0
 
 EXIT_CODE=0

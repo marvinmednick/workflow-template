@@ -3,92 +3,104 @@
 Shared Claude Code workflow commands and scripts for the two-role development workflow
 (Claude = architect/reviewer, implementor tool = code writer).
 
-## What's in here
+## How it works
+
+This repo is a single source of truth cloned once per machine. All projects symlink into
+it rather than copying files. Edit a command here, and every project picks it up immediately —
+no syncing or per-project updates needed.
 
 ```
-*.md                  # Generic workflow commands (symlinked into commands/ in projects)
-scripts/              # Shell scripts (symlinked into project root)
-configs/              # Generic config files (symlinked into project root)
+*.md                  # Generic workflow commands (symlinked as commands/ in each project)
+scripts/              # Shell scripts (symlinked into each project root)
+configs/              # Tool config files (symlinked into each project root)
 claude-stubs/         # Claude Code command stubs (symlinked into .claude/commands/)
-skeleton/             # Starting-point files for new projects (copy and customize)
+skeleton/             # Starting-point files — copy and customize per project
 ```
+
+## First-time setup (once per machine)
+
+Clone this repo anywhere you like:
+
+```bash
+git clone https://github.com/marvinmednick/workflow-template <your-chosen-path>
+# e.g. ~/Development/workflow_template  or  ~/.workflow-template
+```
+
+Scripts self-locate via symlink resolution — no path configuration needed.
+Set `WORKFLOW_TEMPLATE_DIR` only if you need to override the resolved path.
 
 ## Setting up a new project
 
+From your project directory:
+
 ```bash
-# 1. Clone this repo to a stable local location (one-time per machine)
-git clone https://github.com/marvinmednick/workflow-template ~/.workflow-template
+# Creates all symlinks: commands/, scripts, Claude stubs, and tool configs
+<your-chosen-path>/scripts/setup.sh
+```
 
-# 2. In your project directory, create all symlinks (commands/, scripts, stubs, configs)
-~/.workflow-template/scripts/setup.sh
+Then copy and fill in the project-specific skeleton files:
 
-# 3. Copy and customize the skeleton files
-cp ~/.workflow-template/skeleton/.implement.conf .implement.conf
-cp ~/.workflow-template/skeleton/REVIEW-template.md REVIEW.md
-cp ~/.workflow-template/skeleton/WORKFLOW-template.md WORKFLOW.md
-cp ~/.workflow-template/skeleton/AGENT-template.md AGENT.md
-cp ~/.workflow-template/skeleton/CODING-template.md CODING.md
-cp ~/.workflow-template/skeleton/DESIGN-template.md DESIGN.md
-# Edit each file — fill in project-specific content
+```bash
+cp <your-chosen-path>/skeleton/.implement.conf       .implement.conf
+cp <your-chosen-path>/skeleton/WORKFLOW-template.md  WORKFLOW.md
+cp <your-chosen-path>/skeleton/AGENT-template.md     AGENT.md
+cp <your-chosen-path>/skeleton/CODING-template.md    CODING.md
+cp <your-chosen-path>/skeleton/DESIGN-template.md    DESIGN.md
+cp <your-chosen-path>/skeleton/REVIEW-template.md    REVIEW.md
+```
 
-# 4. Create CLAUDE.md for Claude Code session guidance
+Edit each file to fill in project-specific content, then create `CLAUDE.md` for Claude Code
+session guidance.
 
-# 5. Verify all symlinks are correct
+Finally, verify all symlinks are in place:
+
+```bash
 ./verify-links
 ```
 
-## Updating an existing project
+## Keeping projects up to date
 
 ```bash
 ./update-workflow
 ```
 
-This pulls the latest `~/.workflow-template` clone. Since all files (commands/, scripts,
-stubs, configs) are symlinks into that clone, they update instantly — no further steps needed.
+Pulls the latest template clone. Since all commands, scripts, stubs, and configs are
+symlinks, they update instantly — no per-project changes needed.
 
-## Pushing a local command improvement upstream
+## Improving shared commands
 
-If you edit a generic command in `commands/` (remember: it's a symlink, so you're editing
-`~/.workflow-template/<name>.md` directly), commit and push the shared repo:
+Commands in `commands/` are symlinks, so editing one means you're editing the file
+directly in the template clone. Commit and push from there:
 
 ```bash
-cd ~/.workflow-template
+cd <your-chosen-path>
 git add <name>.md
 git commit -m "improve: ..."
 git push
 ```
 
-## Verifying symlinks
-
-After setup or after cloning to a new machine, confirm all expected symlinks are correct:
-
-```bash
-./verify-links
-```
-
-Reports each symlink as ✓ (correct), or ✗ with the reason (missing, wrong target, dangling,
-or real file). Offers to fix all fixable issues in one pass. Real files (not symlinks) must
-be removed manually before they can be replaced.
-
 ## New machine setup
 
+Symlinks embed the template path, so they must be recreated on each machine:
+
 ```bash
-git clone https://github.com/marvinmednick/workflow-template ~/.workflow-template
+git clone https://github.com/marvinmednick/workflow-template <your-chosen-path>
 cd <project>
-~/.workflow-template/scripts/setup.sh   # recreates all symlinks
-./verify-links                          # confirm everything is correct
+<your-chosen-path>/scripts/setup.sh   # recreates all symlinks
+./verify-links                        # confirm everything is correct
 ```
 
-## Project-specific files (not in this repo)
+## Project-specific files
 
-Each project owns these files — they are never synced from this repo:
+These files are copied from `skeleton/` and customized per project. They live in the
+project repo and are never overwritten by `update-workflow`:
 
 | File | Purpose |
 |------|---------|
-| `REVIEW.md` | Project-specific review checklist (read by `/review-impl` and built-in `/review`) |
-| `.implement.conf` | Tool, model, test command, file path pattern |
-| `WORKFLOW.md` | Project workflow guide (commands, use cases, file reference) |
-| `AGENT.md` | Implementor behavioral rules |
-| `CODING.md` | Coding conventions |
-| `DESIGN.md` | Architecture reference |
-| `CLAUDE.md` | Claude Code session guidance |
+| `.implement.conf` | Implementor tool, model, test command, file path pattern |
+| `WORKFLOW.md` | Project workflow guide — commands, use cases, file reference |
+| `AGENT.md` | Behavioral rules for the implementor tool |
+| `CODING.md` | Coding conventions and patterns |
+| `DESIGN.md` | Architecture and design reference |
+| `REVIEW.md` | Review checklist (read by `/review-impl` and `/review`) |
+| `CLAUDE.md` | Claude Code session guidance (not in skeleton — create from scratch) |

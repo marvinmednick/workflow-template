@@ -2,18 +2,17 @@
 # verify-links — Check that all workflow-template symlinks are correct
 #
 # Run from the project root to verify all expected symlinks are in place
-# and pointing to the right targets in ~/.workflow-template.
+# and pointing to the right targets in workflow-template.
 # Offers to fix any issues found.
 
 set -euo pipefail
 
-TEMPLATE="$HOME/.workflow-template"
+TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
 ISSUES=()
 OK=0
 
 if [[ ! -d "$TEMPLATE" ]]; then
-  echo "Error: ~/.workflow-template not found."
-  echo "Run: git clone https://github.com/marvinmednick/workflow-template ~/.workflow-template"
+  echo "Error: workflow-template not found at $TEMPLATE"
   exit 1
 fi
 
@@ -47,20 +46,21 @@ check_link() {
 
 echo "=== Commands ==="
 for cmd in complete.md design.md design-review.md feature.md fix-baseline.md \
-           investigate.md resolve.md review-plan.md spec.md triage.md review.md; do
+           implement.md investigate.md resolve.md review-plan.md spec.md triage.md review.md; do
   check_link "commands/$cmd" "$TEMPLATE/$cmd"
 done
 
 echo ""
 echo "=== Scripts ==="
-for script in implement check-tests gh-aliases.sh update-workflow verify-links; do
+for script in implement check-tests check-workflow gh-aliases.sh update-workflow verify-links; do
   check_link "./$script" "$TEMPLATE/scripts/$script"
 done
 
 echo ""
 echo "=== Claude Code stubs ==="
 for stub in complete.md design.md design-review.md feature.md fix-baseline.md \
-            investigate.md resolve.md review-impl.md review-plan.md spec.md triage.md; do
+            implement.md investigate.md resolve.md review-impl.md review-plan.md \
+            spec.md triage.md upgrade-workflow.md; do
   check_link ".claude/commands/$stub" "$TEMPLATE/claude-stubs/$stub"
 done
 

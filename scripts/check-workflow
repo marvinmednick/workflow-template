@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# check-workflow — Compare project's workflow version to template version
+#
+# Usage:
+#   ./check-workflow          # Print status and pending changes; exits 1 if behind
+#   ./check-workflow --quiet  # Exit 1 silently if behind (for use in hooks/startup)
+#
+# Exit codes:
+#   0 — project is current
+#   1 — project is behind (or .workflow-version missing)
+
+set -euo pipefail
+
+QUIET=false
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --quiet) QUIET=true; shift;;
+    -h|--help)
+      echo "Usage: ./check-workflow [--quiet]"
+      echo "  Checks whether the project is current with the workflow-template."
+      echo "  Exit 0 = current. Exit 1 = behind."
+      exit 0;;
+    *) echo "Unknown argument: $1"; exit 2;;
+  esac
+done
+
+TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
+TEMPLATE_VERSION_FILE="$TEMPLATE/VERSION"
+TEMPLATE_CHANGELOG="$TEMPLATE/CHANGELOG.md"
+PROJECT_VERSION_FILE=".workflow-version"
+
+if [[ ! -f "$TEMPLATE_VERSION_FILE" ]]; then
+  $QUIET || echo "Error: $TEMPLATE_VERSION_FILE not found in template"
+  exit 1
+fi
+
+TEMPLATE_VERSION=$(tr -d '[:space:]' < "$TEMPLATE_VERSION_FILE")
+PROJECT_VERSION=$(tr -d '[:space:]' < "$PROJECT_VERSION_FILE" 2>/dev/null || echo "0")
+
+if [[ "$PROJECT_VERSION" == "$TEMPLATE_VERSION" ]]; then
+  $QUIET || echo "✓ Workflow is current (v${TEMPLATE_VERSION})"
+  exit 0
+fi
+
+if $QUIET; then
+  exit 1
+fi
+
+echo "⚠  Workflow update available"
+echo "   Project: v${PROJECT_VERSION}  →  Template: v${TEMPLATE_VERSION}"
+echo ""
+echo "Pending changes:"
+echo ""
+
+python3 - "$TEMPLATE_CHANGELOG" "$PROJECT_VERSION" "$TEMPLATE_VERSION" << 'PYEOF'
+import sys, re
+
+changelog_file, from_str, to_str = sys.argv[1], sys.argv[2], sys.argv[3]
+from_v, to_v = int(from_str), int(to_str)
+
+try:
+    with open(changelog_file) as f:
+        content = f.read()
+except FileNotFoundError:
+    print("  (no CHANGELOG.md found in template)")
+    sys.exit(0)
+
+# Split on version headers: "## vN"
+parts = re.split(r'(^## v\d+[^\n]*$)', content, flags=re.MULTILINE)
+# parts: ['preamble', '## v2 ...', 'body', '## v3 ...', 'body', ...]
+
+i = 1
+found = False
+while i < len(parts) - 1:
+    header = parts[i].strip()
+    body   = parts[i + 1]
+    m = re.match(r'## v(\d+)', header)
+    if m and from_v < int(m.group(1)) <= to_v:
+        print(header)
+        print(body.rstrip())
+        print()
+        found = True
+    i += 2
+
+if not found:
+    print(f"  (no CHANGELOG entries between v{from_v} and v{to_v})")
+PYEOF
+
+echo ""
+echo "Run /upgrade-workflow in Claude Code to review and apply changes."
+exit 1

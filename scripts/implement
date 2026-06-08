@@ -342,9 +342,25 @@ case "$TOOL" in
     fi
     ;;
 
+  claude)
+    # Launches claude CLI as a new subprocess — isolated context, no conversation history.
+    # AGENT.md and CODING.md are loaded via the prompt; the agent reads them itself.
+    CONTEXT_PREFIX="Read AGENT.md and CODING.md in full before making any changes. "
+    if [[ "$PLAN_MODE" == true ]]; then
+      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and stop."
+    elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
+      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done."
+    else
+      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done."
+    fi
+    echo "Running: claude (new subprocess — isolated context)"
+    echo ""
+    claude "$PROMPT"
+    ;;
+
   *)
     echo "Unknown tool: $TOOL"
-    echo "Use --tool codex, gemini, or aider"
+    echo "Use --tool codex, gemini, aider, or claude"
     exit 1
     ;;
 esac

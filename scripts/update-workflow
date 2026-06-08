@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # update-workflow — Pull latest workflow-template updates into this project
 #
-# Pulls the ~/.workflow-template clone — all symlinked files (commands/, scripts,
+# Pulls the workflow-template clone — all symlinked files (commands/, scripts,
 # stubs, configs) update instantly since they are symlinks into that clone.
 #
 # Run from the project root.
@@ -9,14 +9,19 @@
 set -euo pipefail
 
 REMOTE="https://github.com/marvinmednick/workflow-template"
-TEMPLATE="$HOME/.workflow-template"
+TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
 
 if [[ ! -d "$TEMPLATE" ]]; then
-  echo "Error: ~/.workflow-template not found."
-  echo "Run: git clone $REMOTE ~/.workflow-template"
+  echo "Error: workflow-template not found at $TEMPLATE"
   exit 1
 fi
 
 echo "Updating workflow-template clone..."
 git -C "$TEMPLATE" pull --quiet
 echo "  ✓ All symlinked files up to date (commands/, scripts, stubs, configs)"
+echo ""
+
+# Check whether the project is current with the new template version
+if [[ -f "./check-workflow" ]]; then
+  ./check-workflow || true   # non-zero exit is informational, not fatal
+fi
