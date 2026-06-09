@@ -17,7 +17,29 @@ verify-links is broken. Run this to fix it manually:
 Then re-run /upgrade-workflow.
 ```
 
-Only proceed to Step 1 once `verify-links` reports all symlinks correct (the `.codex` entry is a known exception and can be ignored).
+Only proceed once `verify-links` reports all symlinks correct (the `.codex` entry is a known exception and can be ignored).
+
+## Step 0b — Check repo health
+
+Run:
+
+```bash
+./verify-repo
+```
+
+This checks GitHub authentication, required workflow labels, and project file structure. Fix any issues before continuing:
+
+- **Missing labels** → run `~/Development/workflow_template/scripts/setup-github-labels.sh` (safe to re-run)
+- **Missing directories** → `mkdir plans specs`
+- **Missing files** → create empty `PLAN.md`, `BACKLOG.md`, or `IDEAS.md` as needed
+- **`.workflow-version` missing** → will be set at the end of this upgrade process
+
+If `verify-repo` is not yet symlinked (project predates v3), run it directly:
+```bash
+~/Development/workflow_template/scripts/verify-repo
+```
+
+Only proceed to Step 1 once both `verify-links` and `verify-repo` are clean (or issues are acknowledged).
 
 ---
 

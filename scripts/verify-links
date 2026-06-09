@@ -52,7 +52,7 @@ done
 
 echo ""
 echo "=== Scripts ==="
-for script in implement check-tests check-workflow gh-aliases.sh update-workflow verify-links; do
+for script in implement check-tests check-workflow gh-aliases.sh update-workflow verify-links verify-repo; do
   check_link "./$script" "$TEMPLATE/scripts/$script"
 done
 

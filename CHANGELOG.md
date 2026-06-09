@@ -5,6 +5,30 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v3 (2026-06-08)
+
+### Auto-updated (symlinks — no action needed)
+- `upgrade-workflow.md`: Added Step 0b — runs `./verify-repo` before the version check
+- `verify-links`: Now also checks that `verify-repo` is symlinked
+- `setup.sh`: Now symlinks `verify-repo` for new projects; mentions `setup-github-labels.sh` in next steps
+- New `verify-repo` script: checks gh auth, required labels, and project file structure
+
+### Skeleton file changes (review and update existing projects)
+
+**WORKFLOW.md** — Add a "One-Time Repository Setup" section near the top (after the intro, before the Cheatsheet). It documents the `setup-github-labels.sh` step that creates the 12 required workflow labels. See `skeleton/WORKFLOW-template.md` for the exact section.
+
+### New required project files
+- None
+
+### Action required for existing projects (one-time, per repo)
+Run the label setup script once for each GitHub repo using this workflow:
+```bash
+~/Development/workflow_template/scripts/setup-github-labels.sh OWNER/REPO
+```
+Creates: `feature`, `specced`, `in-review`, `cleanup`, `test-quality`, `docs`, `severity:high/medium/low`, `effort:small/medium/large`. Safe to re-run — skips existing labels.
+
+---
+
 ## v2 (2026-06-08)
 
 ### Auto-updated (symlinks — no action needed)

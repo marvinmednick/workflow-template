@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# verify-repo — Check GitHub repo health: auth, labels, and project structure
+#
+# Run from the project root. Checks:
+#   - gh CLI authenticated and GitHub remote configured
+#   - All required workflow labels exist in the repo
+#   - Required project directories and files are present
+#   - .workflow-version file exists
+
+set -euo pipefail
+
+TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
+ISSUES=()
+OK=0
+SKIP_LABELS=false
+
+check_ok() {
+  echo "  ✓ $1"
+  OK=$((OK + 1))
+}
+
+check_fail() {
+  echo "  ✗ $1"
+  ISSUES+=("$1")
+}
+
+# ── GitHub auth + remote ──────────────────────────────────────────────────────
+echo "=== GitHub ==="
+
+if ! gh auth status &>/dev/null; then
+  check_fail "gh CLI not authenticated — run: gh auth login"
+  SKIP_LABELS=true
+else
+  check_ok "gh CLI authenticated"
+
+  if ! REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null); then
+    check_fail "no GitHub remote — run: gh repo create or git remote add origin <url>"
+    SKIP_LABELS=true
+  else
+    check_ok "GitHub remote: $REPO"
+  fi
+fi
+
+# ── Labels ────────────────────────────────────────────────────────────────────
+echo ""
+echo "=== Labels ==="
+
+REQUIRED_LABELS=(
+  "feature" "specced" "in-review"
+  "cleanup" "test-quality" "docs"
+  "severity:high" "severity:medium" "severity:low"
+  "effort:small" "effort:medium" "effort:large"
+)
+
+if [[ "$SKIP_LABELS" == true ]]; then
+  echo "  (skipped — no GitHub connection)"
+else
+  EXISTING_LABELS=$(gh label list --limit 100 --json name -q '.[].name' 2>/dev/null || echo "")
+  MISSING_LABELS=()
+
+  for label in "${REQUIRED_LABELS[@]}"; do
+    if echo "$EXISTING_LABELS" | grep -qx "$label"; then
+      check_ok "label: $label"
+    else
+      check_fail "label missing: $label"
+      MISSING_LABELS+=("$label")
+    fi
+  done
+
+  if [[ ${#MISSING_LABELS[@]} -gt 0 ]]; then
+    echo ""
+    echo "  Fix: $TEMPLATE/scripts/setup-github-labels.sh"
+  fi
+fi
+
+# ── Project structure ─────────────────────────────────────────────────────────
+echo ""
+echo "=== Project structure ==="
+
+for dir in plans specs; do
+  if [[ -d "$dir" ]]; then
+    check_ok "directory: $dir/"
+  else
+    check_fail "directory missing: $dir/   (mkdir $dir)"
+  fi
+done
+
+for file in PLAN.md BACKLOG.md IDEAS.md; do
+  if [[ -f "$file" ]]; then
+    check_ok "file: $file"
+  else
+    check_fail "file missing: $file"
+  fi
+done
+
+if [[ -f ".workflow-version" ]]; then
+  version=$(tr -d '[:space:]' < .workflow-version)
+  check_ok ".workflow-version = $version"
+else
+  check_fail ".workflow-version missing — run /upgrade-workflow to initialize"
+fi
+
+# ── Summary ───────────────────────────────────────────────────────────────────
+echo ""
+if [[ ${#ISSUES[@]} -eq 0 ]]; then
+  echo "All $OK checks passed."
+  exit 0
+fi
+
+echo "${#ISSUES[@]} issue(s) found ($OK passed)."
+exit 1
