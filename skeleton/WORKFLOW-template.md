@@ -4,6 +4,18 @@
 
 ---
 
+## One-Time Repository Setup
+
+After running `scripts/setup.sh` to install symlinks, create the standard workflow labels in your GitHub repo:
+
+```bash
+~/Development/workflow_template/scripts/setup-github-labels.sh OWNER/REPO
+```
+
+This creates 12 labels used by the workflow commands: `feature`, `specced`, `in-review`, `cleanup`, `test-quality`, `docs`, `severity:high/medium/low`, and `effort:small/medium/large`. Safe to re-run — skips labels that already exist.
+
+---
+
 ## Cheatsheet
 
 ### Feature Flow
