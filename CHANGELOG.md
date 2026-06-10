@@ -5,6 +5,47 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v4 (2026-06-09)
+
+### Auto-updated (symlinks — no action needed)
+- `setup.sh`: Step 3 now references `setup-claude.sh` and the CLAUDE-template.md skeleton
+- New `setup-claude.sh` script: interactive CLAUDE.md generator; asks project name, description, language/runtime, branch, credentials, and architecture directory; available at `~/Development/workflow_template/scripts/setup-claude.sh`
+
+### Skeleton file changes (review and update existing projects)
+
+**CLAUDE.md** — Add a "Reasoning Quality" section before the Git section. It instructs Claude to explicitly label inferences before asserting them as facts. See `skeleton/CLAUDE-template.md` for the exact section.
+
+The section to add:
+
+```markdown
+## Reasoning Quality
+
+When reasoning from evidence to a conclusion, explicitly label it as an inference and verify before presenting it as fact.
+
+- Say so when a conclusion is derived from reasoning rather than direct observation: "My inference is X — let me verify that."
+- Before asserting, ask: "Did I observe this directly, or did I reason to it?" If reasoned, verify first.
+- Name the verification step explicitly — reading a file, fetching docs, running a command, grepping for a symbol — then do it.
+- Risk is highest when a plausible analogy is at hand and circumstantial evidence fits: those conditions make an inference feel like a fact.
+
+**Applies to all inference types:**
+- Third-party tool behavior → fetch official documentation
+- Code behavior → read the code or run it
+- File contents → read the file
+- Git history or authorship → run `git log` / `git blame`
+- Codebase patterns → grep for them
+- System or runtime behavior → test it
+```
+
+### New required project files
+- None (CLAUDE.md is an existing file in each project — update it per above)
+
+### Action required for existing projects (one-time, per repo)
+Add the "Reasoning Quality" section to each project's `CLAUDE.md`. Either:
+- Copy the section from `skeleton/CLAUDE-template.md`, or
+- Run `/upgrade-workflow` — it will offer to apply the change automatically.
+
+---
+
 ## v3 (2026-06-08)
 
 ### Auto-updated (symlinks — no action needed)
