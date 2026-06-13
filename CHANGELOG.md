@@ -5,6 +5,35 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v6 (2026-06-13)
+
+### Summary
+Fixes `/feature` so the **F-number always equals the GitHub issue number**. The old Step 5 derived
+the F-number from "highest F in PLAN.md + 1" — an independent counter that silently drifts from the
+issue number the moment any non-feature issue is filed between two features (e.g. F4 landed on issue
+`#8`). `skeleton/WORKFLOW-template.md` already documented the correct intent ("F-number = issue
+number"); the command now matches it: create the issue first, read the number GitHub assigns, then
+set the title to `F<N>: …` and add the PLAN row. Also formalizes that the `feature`/`enhancement`
+label conveys **significance only** — both types get an F-number and the same
+`/design` → `/spec` → `/review` workflow.
+
+### Auto-updated (symlinks — no action needed)
+- `feature.md`: Step 5 rewritten — issue-first numbering (`F<N>` = issue number, no separate
+  counter), a type-label (significance) step, and a PLAN row that carries the `feature|enhancement`
+  type.
+
+### Skeleton file changes (review and update existing projects)
+- None. `WORKFLOW-template.md` already stated the rule; no skeleton edits required.
+
+### Migration for existing projects
+- Symlinked `feature.md` updates automatically — new `/feature` runs use issue-number IDs.
+- **Existing rows where `F<N> ≠ #<N>` are not auto-fixed.** To realign: rename `specs/`, `plans/`,
+  and `docs/design/` files to the issue number, update PLAN.md (add a `Type` column;
+  `feature`/`enhancement`), and `gh issue edit <N> --title "F<N>: …"`. (patent-analysis did this on
+  2026-06-13: F4→F8, F5→F9, enhancements #4–#7 adopted as F4–F7.)
+
+---
+
 ## v5 (2026-06-12)
 
 ### Summary

@@ -85,24 +85,31 @@ Incorporate feedback and re-present if needed. When the user confirms, proceed.
 
 ## Step 5 — Register
 
-### 5a — Determine the next F-number
+> **The F-number is always the GitHub issue number** (`F8` ⇔ `#8`). Never maintain a separate
+> counter — GitHub assigns the number, and the workflow ID is derived from it. This guarantees the
+> two can never drift (they drift the moment any non-feature issue is filed between two features).
 
-Read PLAN.md and find the highest F-number in the Active Features table:
+### 5a — Choose the type label (significance)
+
+Every tracked item gets an F-number and the same `/design` → `/spec` → `/review` workflow. The label
+conveys *significance only*:
+- `feature` — significant work (new capability, cross-cutting, or a new surface)
+- `enhancement` — minor work (a small, self-contained improvement to existing behavior)
+
+Pick one based on the conversation.
+
+### 5b — Create the GitHub issue first, then read its number
+
+Create the issue with a plain descriptive title (no F-number yet — it isn't known until GitHub
+assigns the issue number), capturing the number it returns:
 
 ```bash
-grep "^| F" PLAN.md
-```
-
-The next feature gets the next integer.
-
-### 5b — Create the GitHub issue
-
-```bash
-gh issue create \
-  --title "F[N]: [feature name]" \
-  --label "feature" \
+N=$(gh issue create \
+  --title "[item name]" \
+  --label "[feature|enhancement]" \
   --label "effort:[small|medium|large]" \
-  --body "..."
+  --body "..." \
+  | grep -oE '[0-9]+$')
 ```
 
 Choose the effort label based on the conversation:
@@ -110,12 +117,20 @@ Choose the effort label based on the conversation:
 - `effort:medium` — multiple files, possible schema change, or new UI surface
 - `effort:large` — new screens, significant schema change, or cross-cutting changes
 
-### 5c — Add to PLAN.md
+### 5c — Set the ID in the issue title
 
-Add a row to the Active Features table:
+The workflow ID is `F$N`. Prepend it to the title now that the number is known:
+
+```bash
+gh issue edit "$N" --title "F$N: [item name]"
+```
+
+### 5d — Add to PLAN.md
+
+Add a row to the Active Features table (the `F<N>` ID equals the issue number):
 
 ```
-| F[N] | [Feature Name] | Backlog | — | [#N](url) |
+| F[N] | [feature|enhancement] | [Item Name] | Backlog | — | [#N](url) |
 ```
 
 ---
@@ -123,7 +138,7 @@ Add a row to the Active Features table:
 ## Step 6 — Report
 
 Confirm:
-- F-number assigned
+- F-number assigned (= the GitHub issue number)
 - GitHub issue URL
 - PLAN.md updated
 
