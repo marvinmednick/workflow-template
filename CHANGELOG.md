@@ -5,6 +5,62 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v7 (2026-06-13)
+
+### Summary
+Hardens the implement/review handoff against the F11 failure, where `./implement` after a review
+**self-certified completion without reading the review ledger** (it confirmed the code looked
+implemented, ran tests, and reported done), and the progress file had silently corrupted under context
+compaction (a full-status matrix let a stale append regress the recorded state 13/13 → 7/13).
+
+Three coordinated changes establish a clear contract across the two roles:
+- **One uniform startup, no fix-vs-resume branch.** `implement.md` and `AGENT.md` now have the agent
+  rehydrate state from disk every session (and after any compaction): orient from the progress
+  bookmark → reconcile against `git` → **unconditionally** check `plans/[ID]-review.md`. The ledger
+  check is no longer a buried conditional the agent could skip; if the file exists, its open findings
+  are part of the to-do list — period.
+- **Authority split made explicit.** progress journal = resume *bookmark* (intent/ordering/in-flight);
+  `git` = what's actually on disk; ledger = what needs fixing + the reviewer's **completeness verdict**.
+  On a fix pass the implementor trusts the verdict and does not re-audit the spec.
+- **Progress journal is append-only deltas, not a rewritten matrix.** A stale append is now a harmless
+  *local* blip instead of a global overwrite. The `Progress: N/M` line stays as a non-authoritative
+  human convenience; real state is reconciled against `git` at two checkpoints (Session Start, Before
+  Reporting Done).
+- **Reviewer owns completeness.** `review.md` Step 0 now reviews against the working tree (not the
+  progress file's self-report), records an `Implementation: Complete|Incomplete` verdict in the ledger
+  header, and treats a stale/inconsistent progress file as a *non-blocking hygiene finding* rather than
+  a hard "Status ≠ Complete → stop" block (which would have wrongly bounced the stale-but-complete F11).
+
+### Auto-updated (symlinks — no action needed)
+- `implement.md`: spawn prompt rewritten — uniform rehydrate-from-disk startup, unconditional ledger
+  check, self-certification language removed, remaining-work = plan items ∪ open findings.
+- `review.md`: Step 0 reviews against the working tree; records the `Implementation:` verdict; a stale
+  progress file is a non-blocking hygiene finding, not a hard stop. Ledger header gains an
+  `Implementation:` line; round 1 records the verdict.
+
+### Skeleton file changes (review and update existing projects)
+
+**AGENT.md** — five changes (see `skeleton/AGENT-template.md`):
+1. New **Session Start — Rehydrate State From Disk** section (orient → git reconcile → unconditional
+   ledger check), referenced as Workflow step 1.
+2. **Progress Logging** rewritten to an append-only delta journal (no ✅/⏳ matrix; `Progress: N/M` is a
+   non-authoritative convenience).
+3. **Review Ledger Protocol** opening softened/unconditionalized: ledger defines what needs fixing,
+   trust the reviewer's completeness verdict, don't re-audit; reconcile a flagged stale bookmark.
+4. **Mid-Implementation Pause** updated for append-only journaling + Session Start resume.
+5. New **Before Reporting Done (implementer self-check)** section (reconcile bookmark, no open findings,
+   git matches report, tests pass) — distinct from the `/complete` skill; replaces the old "Completion
+   Gate" naming.
+
+### Migration for existing projects
+- Symlinked `implement.md` / `review.md` update automatically.
+- Apply the five AGENT.md changes above to each project's `AGENT.md` (they sit alongside any
+  project-specific Coding/Boundaries sections), then bump the project's `.workflow-version` to `7`.
+- **patent-analysis already has the AGENT.md changes hand-applied during the F11 post-mortem session
+  (2026-06-13); its `.workflow-version` is set to 7 directly — no `/upgrade-workflow` needed there.**
+
+---
+
 ## v6 (2026-06-13)
 
 ### Summary

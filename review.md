@@ -2,18 +2,30 @@ Review the code changes described or shown (use recent git diff if no specific c
 
 ## Step 0 — Determine Review Path
 
-Before reviewing any code, check whether a progress file exists:
+The **working tree is what you review** — `git diff` and the actual file contents, not the progress
+file's self-report. `plans/[ID]-progress.md` is a *hint* to orient you, never the authority on what is
+done (it can go stale under context compaction).
+
+Check whether a progress file exists:
 
 ```bash
 ls plans/F[N]-progress.md 2>/dev/null || ls plans/I[N]-progress.md 2>/dev/null
 ```
 
-**If found** — this is a spec/implement-path feature. Read the progress file:
-- **Status ≠ `Complete`:** Blocking — stop and report. Do not review incomplete work.
-- **Issues non-empty:** Flag each item prominently. These are problems the implementor already identified.
-- **File checklist:** Cross-check ✅/🔄/⏳ entries against the spec's "Files to Modify" list. Note any omissions or scope creep.
-
-Continue to code review only when Status is `Complete` and Issues is empty (or all issues are understood and explained).
+**If found** — this is a spec/implement-path feature. Read it as a hint, then:
+- **Judge completeness against the code, not the log.** Cross-check the spec's "Files to Modify" and
+  "New Files" against the actual working tree (`git status` / `git diff`). If a required change is
+  genuinely missing or unimplemented, raise it as a finding (blocking if it blocks the feature) — do
+  not silently pass it. Record the outcome as the **Implementation** verdict in the ledger header
+  (see below). If the work is *substantially* incomplete (many spec items absent), record
+  `Implementation: Incomplete` with the missing items as blocking findings and report Needs Fixes
+  rather than doing a deep line-by-line review.
+- **A stale or internally inconsistent progress file is a *non-blocking hygiene finding*, not a hard
+  stop.** (E.g. the last entry reads "7/13" but git shows all files changed.) Note it in the ledger so
+  the implementor reconciles the bookmark next pass — then proceed to review the actual code. Do NOT
+  refuse to review just because the log looks stale.
+- **Issues section non-empty:** flag each item prominently — problems the implementor already
+  identified.
 
 **If not found** — check for a log file:
 
@@ -76,6 +88,7 @@ field ownership** so neither side certifies its own work.
 ```markdown
 # Review Ledger: F[N] — [Feature Name]
 **Last round:** [k] | **Status:** [Needs Fixes | Passed]
+**Implementation:** [Complete | Incomplete] — [as of round k: all spec files present & reviewed | N items unimplemented, see findings]
 **Open blocking:** [count] | Open non-blocking: [count]
 
 ---
@@ -130,11 +143,12 @@ stated reason — see Convergence).
 
 ### What you do each round
 
-1. **Round 1:** create the ledger; write one block per finding (blocking and non-blocking), all
-   `Status: Open`.
+1. **Round 1:** confirm completeness against the working tree (per Step 0) and record the
+   `Implementation:` verdict in the header; create the ledger; write one block per finding (blocking
+   and non-blocking), all `Status: Open`.
 2. **Re-review:** for each `Addressed` finding, verify against the diff → set `Verified`, or set
    `Reopened` with a note. Add new findings as new blocks (next monotonic ID, `Status: Open`).
-   Recompute the header counts and `Last round`.
+   Recompute the header counts, `Last round`, and the `Implementation:` verdict's round marker.
 3. Decide each non-blocking finding consciously: it must end the feature as `Verified` or `Deferred`
    (with reason) — never left silently `Open`. The default is to fix it; defer only when it is
    genuinely too costly for this pass.

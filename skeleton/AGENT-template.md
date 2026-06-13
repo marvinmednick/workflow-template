@@ -45,41 +45,78 @@ Replace this section with your project's specific off-limits boundaries. Example
 2. **No hardcoded sleeps to work around timing.** If a test needs `setTimeout` delays to pass, the underlying issue is leaked state or missing cleanup — fix that instead.
 3. **Timer cleanup is mandatory.** Any test that calls `jest.useFakeTimers()` must have a corresponding `jest.useRealTimers()` in `afterEach` (not just inline at the end of the test). If the test throws before inline cleanup, fake timers leak to subsequent tests.
 
+## Session Start — Rehydrate State From Disk
+
+Run this **every** session before reading the spec or writing code — and **again after any context
+compaction, model switch, or resumed session**. It is the *same* procedure whether you are starting
+fresh, resuming an interrupted implementation, or on a review fix pass — do not branch on which.
+Never trust an in-context recollection of progress over what these files currently say.
+
+1. **Orient — read `plans/F[N]-progress.md`.** This is your bookmark: it owns the resume state git
+   cannot supply (what was in flight, the order you were working in, intent). Read it first to learn
+   where you stopped.
+2. **Verify (mandatory) — run `git status --short` and `git diff`.** Confirm the bookmark matches the
+   actual tree. Do this *even when you feel certain* — stale state feels exactly like correct state,
+   so the check is not discretionary. If the bookmark and git disagree about whether a file's change
+   is actually present, **git wins on that factual question** — reconcile the bookmark. This is a
+   bookmark reconcile, **not** a re-audit of overall completeness: when a ledger exists the reviewer
+   has already certified completeness (see Review Ledger Protocol) — don't re-derive it.
+3. **Check the ledger (unconditional) — if `plans/F[N]-review.md` exists, read it.** Its `Open` /
+   `Reopened` findings are part of your to-do list regardless of whether this session is a "fix" or a
+   "resume" (see Review Ledger Protocol). Looking is not conditional on you first deciding "this is a
+   fix pass" — always look; if it exists, act on it.
+4. **Read the plan/spec for the remaining work.**
+
+Remaining work = (plan items not yet done, per steps 1–2) ∪ (open ledger findings, per step 3). You
+are not done while either set is non-empty. If a long turn or possible compaction occurred mid-task,
+redo steps 1–3 before editing files or reporting status.
+
 ## Workflow
 
-1. Read the full spec before writing any code. Specs begin with a `<!-- Tracking metadata -->` HTML
+1. Complete "Session Start — Rehydrate State From Disk" above.
+2. Read the full spec before writing any code. Specs begin with a `<!-- Tracking metadata -->` HTML
    comment containing the feature ID, GitHub issue number, and status — this is for project tracking
    only; skip it. The GitHub issue number is not needed for implementation.
-2. Read the files listed in "Files to Modify" to understand existing code
-3. Implement changes file by file, in the order listed in the spec
+3. Read the files listed in "Files to Modify" to understand existing code
+4. Implement the remaining work file by file, in the order listed in the spec
    - **Implement all source files before writing or fixing test files.** Tests depend on the
      components they exercise — writing tests before the source causes false failures.
-   - After completing each file, append a progress entry to `plans/F[N]-progress.md` (see Progress Logging below)
-4. Run the test command from `.implement.conf` (`TEST_CMD`) and confirm all tests pass
-5. Report back (see Reporting Back below)
+   - After completing each file, append a delta entry to `plans/F[N]-progress.md` (append-only — see
+     Progress Logging below)
+5. Run the test command from `.implement.conf` (`TEST_CMD`) and confirm all tests pass
+6. Clear "Before Reporting Done" below, then report back (see Reporting Back)
 
 ## Progress Logging
 
-After completing each file, and whenever you stop, append to (or update) the `## Progress Log` section in `plans/F[N]-progress.md`. Create the file if it doesn't exist. This file is separate from the plan file and exists for both Light and Full level specs.
+`plans/F[N]-progress.md` is an **append-only event journal**, not a status document — your resume
+bookmark. Append one short entry per file you finish (or per finding you address). **Never rewrite,
+re-order, or re-emit the full file list**, and never edit an earlier entry; each entry records only the
+delta since the previous one. This is deliberate: a stale append then becomes a harmless *local* error
+instead of silently overwriting the whole feature's recorded state. Create the file if it does not
+exist; it exists for both Light and Full level specs.
 
-### Format
+### Entry format — one block per completed file (or finding)
 
 ```markdown
-## Progress Log
-
-### Files
-- ✅ `path/file.tsx` — brief description of what was done
-- 🔄 `path/file.tsx` — in progress: what's done, what remains within this file
-- ⏳ `path/file.tsx` — not started
-
-### Issues
-- [Blockers, unexpected patterns, deviations from spec — or "None"]
-
-### Status
-[Complete | In progress — N/M files done | Paused — N/M files done]
+### <UTC timestamp> — `path/file.ext`
+- Done: <one line on what changed; for a fix pass, which finding it resolves>
+- Progress: <e.g. 8/13 files, or fix-pass 2/3 findings — human convenience, non-authoritative>
+- Issues: <blocker / deviation, or "None">
 ```
 
-Keep the Issues section current — flag anything that needs Claude's attention before the next session or before `/review-impl`.
+Rules:
+- Append at the bottom only; do not touch entries above.
+- One entry = one file (or finding) you **just finished**. Do not list files you have not yet done.
+- **No full ✅/⏳ matrix.** Re-emitting the whole file list on every append is what lets a stale append
+  silently overwrite global state. Append-only deltas keep a stale entry local.
+- The `Progress: N/M` line is a **human-readable convenience, not authority** — keep it to help a
+  reader skim. It is safe because the format is append-only and real state is reconciled against `git`
+  at the "Session Start" and "Before Reporting Done" checkpoints. Never *act* on the count without that
+  check.
+- This journal is authoritative for the **bookmark** (intent, ordering, what's in flight). It is **not**
+  authoritative for "is a change actually on disk" — `git` is.
+- Keep the Issues line current — flag anything that needs Claude's attention before the next session or
+  before `/review-impl`.
 
 ## Plan Mode
 
@@ -136,8 +173,20 @@ When the user types `"approved"` (same-session path) or when `plans/F[N]-plan-ap
 
 ## Review Ledger Protocol
 
-When `plans/F[N]-review.md` (the review ledger) exists, the feature has been reviewed and you are on
-a fix pass. The ledger — not the spec — is your authoritative to-do list. Read it **before** the spec.
+When `plans/F[N]-review.md` (the review ledger) exists, its `Open` / `Reopened` findings are part of
+your to-do list — **always**, whether this session is a fix pass or a resume. You learn this from the
+unconditional ledger check in "Session Start"; you do not first have to decide "this is a fix pass."
+
+**The ledger defines what still needs fixing — not "is it implemented" or "do tests pass."** The
+reviewer records a completeness verdict in the ledger header and the open findings are the work.
+**Trust the verdict** — do not re-audit the whole spec for completeness on a fix pass; that is the
+reviewer's job, already done, and the reviewer re-checks the incremental diff next round. You *may* run
+`git` to confirm a specific change is present if unsure — fine — but it is never a substitute for
+reading the ledger, and "tests pass" is never the completion signal while findings are open. The
+failure to avoid: concluding "it's already implemented, nothing to do" without having read the ledger.
+
+If a finding flags a stale or inconsistent `plans/F[N]-progress.md`, treat it as your early signal that
+the recorded state was unreliable — reconcile the bookmark against `git` (per "Session Start").
 
 Each finding is a block with an ID (`F[N]-1`, …), a severity (`blocking` / `non-blocking`), a Status,
 and `Finding` / `Required change` / `Resolution` / `Verification` fields.
@@ -167,11 +216,31 @@ ledger reads `Passed`.
 
 If you need to stop mid-implementation (context limit, model switch, or session break):
 
-1. Update `plans/F[N]-progress.md` with current state — mark any in-progress file as 🔄 and note exactly what's done and what remains within it; set Status to `Paused — N/M files done`
-2. Display the progress log contents on screen so the user can see the current state
-3. Do not commit anything
+1. Append a journal entry to `plans/F[N]-progress.md` describing exactly what's done and, for any file
+   left mid-change, what remains within it — append-only; do not rewrite earlier entries.
+2. Display the recent journal entries on screen so the user can see the current state.
+3. Do not commit anything.
 
-**Resuming:** The next session reads `plans/F[N]-progress.md` to see what's done, reads the actual file contents of completed files to confirm their state, then continues with remaining files. No input from the user is needed to orient the new session.
+**Resuming:** The next session runs "Session Start — Rehydrate State From Disk" (orient from the
+journal, reconcile against `git`, check the ledger) and continues. No input from the user is needed to
+orient the new session.
+
+## Before Reporting Done (implementer self-check)
+
+This is **your** gate before handing work back — it is **not** the `/complete` skill (that ships the
+feature: commit, close the issue, update PLAN.md, and is run by Claude, not you). Before reporting the
+feature implemented or a fix pass done, verify against disk — not memory:
+
+1. **Reconcile the bookmark.** Append a final journal entry stating the final state, and confirm the
+   last entry agrees with `git status --short`. There must be no trailing entry that contradicts the
+   tree. The progress file you leave behind must be usable by the next reader as an accurate bookmark.
+2. **No open findings.** If `plans/F[N]-review.md` exists, no finding reads `Status: Open` or
+   `Status: Reopened`.
+3. **git matches your report.** Every file you claim to have changed is actually modified; nothing
+   unexpected is.
+4. **Tests pass** — the `.implement.conf` `TEST_CMD` on a clean run.
+
+Do not report done until all four hold.
 
 ## Reporting Back
 

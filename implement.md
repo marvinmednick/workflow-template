@@ -48,21 +48,31 @@ Your task: implement `[spec-path]`.
 [IF Full level and approved plan exists]:
 The approved implementation plan is at `plans/[ID]-plan-approved.md`. Follow it exactly.
 
-Check `plans/[ID]-progress.md` for a progress log — if present, read the completed files to confirm their current state and continue from where the previous session left off. Otherwise start fresh.
+Before writing any code, rehydrate state from disk — the SAME procedure whether this is a fresh start,
+a resume, or a review fix pass (see "Session Start" in AGENT.md). Do not branch on which one you think
+it is:
+1. Read `plans/[ID]-progress.md` to orient — where the last session stopped and what was in flight.
+2. Run `git status --short` and `git diff` to confirm that bookmark against the actual tree. This is a
+   bookmark reconcile, NOT a completeness re-audit; git wins on "is this change actually on disk."
+3. ALWAYS check `plans/[ID]-review.md` (the review ledger), regardless of whether you think this is a
+   fix pass. If it exists, its `Open`/`Reopened` findings are part of your to-do list — do NOT
+   conclude "already implemented, nothing to do" and stop. Read the "Review Ledger Protocol" section
+   of AGENT.md and follow it: address every `Open`/`Reopened` finding (blocking AND non-blocking;
+   defer a non-blocking one only when genuinely too costly, noting the reason in its Resolution for the
+   reviewer to set `Deferred`); for each, fill the `Resolution (implementor)` field and set its Status
+   to `Addressed`. Never edit a reviewer-owned field and NEVER set `Verified`/`Deferred`/`Wontfix` —
+   only the reviewer verifies. Trust the reviewer's completeness verdict in the ledger header; do not
+   re-audit the whole spec.
 
-Maintain `plans/[ID]-progress.md` throughout: append a progress entry after completing each file.
+Remaining work = (approved-plan items not yet done) ∪ (open ledger findings).
 
-Check `plans/[ID]-review.md` (the review ledger). IF IT EXISTS, this is a fix pass against review
-findings — read the "Review Ledger Protocol" section of AGENT.md and follow it. In short: address
-every finding whose Status is `Open` or `Reopened` — blocking AND non-blocking; the default is to fix
-all of them, deferring a non-blocking one only when it is genuinely too costly (note the reason in
-its Resolution and leave it for the reviewer to set `Deferred`). For each finding you fix, fill the
-`Resolution (implementor)` field and set its Status to `Addressed`. Do NOT edit any reviewer-owned
-field and NEVER set a finding to `Verified` — only the reviewer verifies.
+Maintain `plans/[ID]-progress.md` throughout: append one delta entry per file finished — append-only,
+never rewrite or re-emit the full file list.
 
-After all files are implemented (or all open findings addressed):
-- Run `[TEST_CMD]`
-- Fix any failing tests and run again to confirm all pass
+When every plan item is complete AND no finding reads `Open`/`Reopened`:
+- Run `[TEST_CMD]`; fix any failing tests and run again to confirm all pass.
+- Clear the "Before Reporting Done" self-check in AGENT.md: reconcile the progress bookmark so no stale
+  trailing entry survives, confirm `git status` matches what you'll report, no open findings, tests pass.
 
 Report back:
 - Every file modified or created
