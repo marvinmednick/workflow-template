@@ -52,7 +52,15 @@ Check `plans/[ID]-progress.md` for a progress log — if present, read the compl
 
 Maintain `plans/[ID]-progress.md` throughout: append a progress entry after completing each file.
 
-After all files are implemented:
+Check `plans/[ID]-review.md` (the review ledger). IF IT EXISTS, this is a fix pass against review
+findings — read the "Review Ledger Protocol" section of AGENT.md and follow it. In short: address
+every finding whose Status is `Open` or `Reopened` — blocking AND non-blocking; the default is to fix
+all of them, deferring a non-blocking one only when it is genuinely too costly (note the reason in
+its Resolution and leave it for the reviewer to set `Deferred`). For each finding you fix, fill the
+`Resolution (implementor)` field and set its Status to `Addressed`. Do NOT edit any reviewer-owned
+field and NEVER set a finding to `Verified` — only the reviewer verifies.
+
+After all files are implemented (or all open findings addressed):
 - Run `[TEST_CMD]`
 - Fix any failing tests and run again to confirm all pass
 
@@ -71,3 +79,7 @@ When the agent reports back, display its report and suggest:
 ```
 Run /review-impl [ID] to review the implementation before committing.
 ```
+
+If a review ledger (`plans/[ID]-review.md`) was present, this was a fix pass — re-running
+`/review-impl [ID]` verifies the `Addressed` findings and surfaces any new ones. Repeat the
+implement → review loop until the ledger reads `Passed`.

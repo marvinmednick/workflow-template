@@ -134,14 +134,34 @@ List ALL new files the spec requires — component files, test files, AND migrat
 
 When the user types `"approved"` (same-session path) or when `plans/F[N]-plan-approved.md` exists and `./implement F[N]` is run without `--plan` (new-session path), implement the spec following the approved plan. If resuming a paused session, check `plans/F[N]-progress.md` first — read the actual file contents of any completed files to confirm their state, then continue with remaining files. Maintain the progress log throughout.
 
-## Needs Fixes
+## Review Ledger Protocol
 
-When `PLAN.md` shows a feature as `Needs Fixes`, read `plans/F[N]-progress.md` **before** reading the spec. The progress file will have a `## Needs Fixes` section at the bottom listing:
-- Exactly which files to change
-- What the change is, with code snippets
-- Which tests to add or update
+When `plans/F[N]-review.md` (the review ledger) exists, the feature has been reviewed and you are on
+a fix pass. The ledger — not the spec — is your authoritative to-do list. Read it **before** the spec.
 
-Apply only those changes. Do not re-read the full spec looking for other work — the Needs Fixes section is the complete and authoritative list of what to fix. Do not replan unless the section explicitly says replanning is required. When done, run the test command and report back as usual.
+Each finding is a block with an ID (`F[N]-1`, …), a severity (`blocking` / `non-blocking`), a Status,
+and `Finding` / `Required change` / `Resolution` / `Verification` fields.
+
+**What to do:**
+1. Address every finding whose Status is `Open` or `Reopened`. Fix **all** of them — blocking and
+   non-blocking alike. The default is to resolve everything; only leave a non-blocking one unfixed
+   when it is genuinely too costly for this pass, and then note *why* in its Resolution so the
+   reviewer can decide to `Defer` it.
+2. For each finding you fix: apply the `Required change`, fill the `Resolution (implementor)` field
+   with what you did and the file reference, and set that finding's Status to `Addressed`.
+3. Do not re-read the whole spec looking for unrelated work — the ledger's open findings are the
+   complete list of what to fix. Do not replan unless a finding explicitly requires it.
+
+**Field ownership — do not cross these lines:**
+- You own only the `Resolution (implementor)` field and the `Open`/`Reopened` → `Addressed`
+  transition.
+- You must **never** edit a reviewer-owned field (ID, severity, Location, Finding, Required change,
+  Verification) and **never** set a finding to `Verified`, `Deferred`, or `Wontfix`. Only the
+  reviewer verifies and closes findings — this prevents you from certifying your own work.
+
+When done, update `plans/F[N]-progress.md`, run the test command, and report back as usual. The
+reviewer re-runs `/review-impl F[N]` to verify your `Addressed` findings; the loop repeats until the
+ledger reads `Passed`.
 
 ## Mid-Implementation Pause
 
