@@ -27,6 +27,7 @@ echo ""
 
 echo "── Status labels ──────────────────────────────────────"
 create_label "feature"     "New feature"                      "0075ca"
+create_label "enhancement" "Minor improvement to existing behavior" "a2eeef"
 create_label "specced"     "Feature has a written spec"       "e4e669"
 create_label "in-review"   "Implementation under review"      "c5def5"
 

@@ -40,7 +40,26 @@ Proceed to Step 1. Treat any design choices that arise as calls for user interac
 > **The F-number always equals the GitHub issue number.** Never derive it from local file counts.
 
 **Case A — Feature already has a GitHub issue** (PLAN.md row has an issue URL, or the feature came through `/feature`):
-- Use the F-number from PLAN.md — do not reassign
+- Extract the issue number from PLAN.md's issue link (e.g. `[#28](url)` → `28`).
+- **Verify alignment before doing anything else.** The F-number in the PLAN.md row must equal the
+  issue number just extracted. If they already match, proceed normally. If they don't match — this
+  is drift, e.g. from a pre-v8 `/spec` run that assigned F[N] from a local file count before the
+  issue existed (the F23/#28 case) — correct it now rather than propagating it further:
+  1. Report the mismatch to the user: "PLAN.md shows F[N] but the linked issue is #[M] — these must
+     match. Renaming F[N] → F[M] across all artifacts." Wait for confirmation before proceeding —
+     this touches multiple files.
+  2. Rename every existing artifact from `F[N]` to `F[M]` using `git mv` (preserves history; never
+     plain `mv`):
+     - `specs/F[N]-*.md` → `specs/F[M]-*.md` (if it exists)
+     - `docs/design/F[N]-*.md` → `docs/design/F[M]-*.md` (if it exists)
+     - `plans/F[N]-*.md` — log, progress, review, plan, plan-approved, any that exist → `plans/F[M]-*.md`
+  3. Update internal references inside each renamed file: header comments (`<!-- ID: F[N] | ... -->`),
+     titles (`# Spec: ...`, `# Design: ...`, `# F[N] Feature Log`), and any other `F[N]` mentions in
+     the body.
+  4. Update the PLAN.md row's F-number from `F[N]` to `F[M]`.
+  5. Update the GitHub issue title if it doesn't already read `F[M]: ...`:
+     `gh issue edit [M] --title "F[M]: [feature name]"`.
+  6. Use `F[M]` (the corrected, issue-aligned number) for the rest of this `/spec` run.
 - Do not create a new issue — the existing issue will be *updated* after the spec is written (see "Create a GitHub Issue" below)
 - Proceed to Step 2
 

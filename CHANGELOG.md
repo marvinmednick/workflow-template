@@ -5,6 +5,48 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v10 (2026-06-16)
+
+### Summary
+
+Two more gaps found while verifying v9 readiness end-to-end:
+
+1. **`enhancement` was never added to the required-labels list**, even though `feature.md` has
+   created `enhancement`-labeled issues since v6, and the new `create-feature-issue.sh` (v9) does
+   too. `gh issue create --label X` hard-fails if the label doesn't exist in the repo. It happened
+   to work everywhere so far because `enhancement` ships as a GitHub default label on new repos —
+   but `verify-repo` (run by `/upgrade-workflow` and meant to catch exactly this kind of gap) would
+   never have flagged it missing if that default were ever absent or deleted.
+
+2. **`/spec` Case A trusted PLAN.md's F-number without checking it against the linked issue.** The
+   v8 fix stopped *new* drift but did nothing for features where drift already happened (the
+   original F23/#28 case) or could recur from a manual edit. `/spec` now extracts the issue number
+   from PLAN.md's issue link, compares it to the F-number, and — if they don't match — corrects it:
+   renames every existing artifact (`specs/`, `docs/design/`, `plans/`) from `F[N]` to `F[M]` via
+   `git mv`, updates internal references, fixes the PLAN.md row, and renames the GitHub issue title
+   if needed. This makes `/spec` self-healing for the exact failure mode that started this whole
+   round of fixes, with user confirmation before any renames.
+
+### Auto-updated (symlinks — no action needed)
+- `setup-github-labels.sh`: now creates `enhancement` alongside `feature`.
+- `verify-repo`: `REQUIRED_LABELS` now includes `enhancement`.
+- `spec.md`: Case A gains a verify-and-correct sub-step before proceeding — detects F#/issue#
+  mismatch and repairs it (renames files via `git mv`, updates references, fixes PLAN.md and the
+  issue title), with user confirmation before renaming.
+
+### Skeleton file changes
+- None.
+
+### Migration for existing projects
+- Symlinked scripts auto-update. Run `./verify-repo` to confirm `enhancement` is present (it almost
+  certainly already is, as a GitHub default label) — if missing, `./setup-github-labels.sh` is safe
+  to re-run.
+- No action needed for the `/spec` self-healing change — it runs automatically next time `/spec` is
+  invoked on a feature with a mismatched F#/issue#.
+- Bump `.workflow-version` to `10`.
+
+---
+
 ## v9 (2026-06-16)
 
 ### Summary
