@@ -102,19 +102,41 @@ No PLAN.md update needed.
 
 ---
 
-## Step 3.5 — Design Review
+## Step 3.5 — Apply Doc Updates
 
-Run `/design-review complete` as a closing check across the whole feature:
+Architectural docs are updated here — never deferred to a new issue. The review ledger captured
+what to write; this step executes it.
 
-- Were any design decisions made during this feature's spec, review, or implementation?
-- Did any patterns change or get established?
-- Are docs (DESIGN.md, CODING.md, ui-guidelines.md) up to date with the current state?
+**Read the review ledger** (`plans/F[N]-review.md`) and find the `## Doc Updates` section:
 
-If no design decisions were made this feature, skip this step.
+- **Section present with entries:** Apply each update directly. Read the target file, make the
+  targeted edit, and commit:
+  ```bash
+  git add [doc files changed]
+  git commit -m "docs: update [docs] for F[N] [feature name]"
+  ```
+  Set the ledger header `Doc Updates: Done`.
+
+- **Section says "None":** No architectural docs need updating. Note this and skip the commit.
+
+- **Section missing** (ledger predates this format, or reviewer omitted it): Do a targeted
+  design-review scan — read the spec's `### Doc Updates` section for pointers, then check whether
+  each referenced doc is current against what was actually built. Apply any gaps found now.
+  **Do not create a GitHub issue for doc gaps.** If a doc needs updating, update it. If the scope
+  is genuinely too large for this session, note it in a comment in the ledger (not an issue) and
+  flag it to the user.
+
+**Hard rule:** No `gh issue create` for doc gaps. Apply now or block shipping.
 
 ---
 
 ## Step 4 — Triage BACKLOG.md
+
+**Sequencing note:** Triage is a content decision (fix now / promote / discard) — it does not depend
+on Step 2's commit having happened. If Step 2 hasn't been committed yet, it's fine to do this triage
+first and fold the result into one commit (feature + `BACKLOG.md` + any fix-now changes) instead of
+two. The two-commit shape below is the default when Step 2 is already committed by the time you reach
+this step; use your judgment, the goal is just that nothing is left untriaged when `/complete` finishes.
 
 Read BACKLOG.md and list all open (unchecked `[ ]`) items.
 

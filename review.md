@@ -90,6 +90,7 @@ field ownership** so neither side certifies its own work.
 **Last round:** [k] | **Status:** [Needs Fixes | Passed]
 **Implementation:** [Complete | Incomplete] — [as of round k: all spec files present & reviewed | N items unimplemented, see findings]
 **Open blocking:** [count] | Open non-blocking: [count]
+**Doc Updates:** [Pending | Done | None]
 
 ---
 
@@ -108,6 +109,14 @@ field ownership** so neither side certifies its own work.
 - **Required change:** ...
 - **Resolution (implementor):** _(unfilled)_
 - **Verification (reviewer):** _(unfilled)_
+
+---
+
+## Doc Updates
+<!-- Filled by reviewer when recording Implementation: Complete. Required — cannot set Status: Passed without this section. -->
+- `architecture/some-doc.md` §Section: [concrete description of what to add or change — enough for Claude to open the file and make the edit without re-reading the whole feature]
+- `DESIGN.md` §Section: [what to update]
+<!-- If no architectural docs need updating, write: None -->
 ```
 
 ### Finding IDs
@@ -152,6 +161,12 @@ stated reason — see Convergence).
 3. Decide each non-blocking finding consciously: it must end the feature as `Verified` or `Deferred`
    (with reason) — never left silently `Open`. The default is to fix it; defer only when it is
    genuinely too costly for this pass.
+4. **When recording `Status: Passed`:** fill the `## Doc Updates` section and set the header
+   `Doc Updates:` field. This is required — you cannot set `Status: Passed` without it. Write
+   concrete, targeted entries (enough for Claude to open the file and make the edit). If no
+   architectural docs need updating, write `None` in both places. Read the spec's `### Doc Updates`
+   section first — it lists pointers Claude identified at spec time; flesh those out with specific
+   section names and content based on what was actually built.
 
 ### Convergence — when the ledger is `Passed`
 

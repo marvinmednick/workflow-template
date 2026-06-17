@@ -5,6 +5,48 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v8 (2026-06-16)
+
+### Summary
+
+Two correctness fixes surfaced when completing F23:
+
+1. **F# must always equal the GitHub issue number.** `spec.md` was assigning the F-number by
+   incrementing the highest local file count, then creating the GitHub issue afterward — an
+   independent counter that silently drifts when any non-feature issue is filed between features
+   (F23 landed on issue #28). `feature.md` fixed this in v6; `spec.md` now matches: if no issue
+   exists, create it first and derive F# from the GitHub-assigned number. If an issue already exists
+   (from `/feature`), use it — no new issue created.
+
+2. **Architectural doc updates collected incrementally, applied at `/complete` — never deferred.**
+   Doc update obligations are now tracked in two places: a `### Doc Updates` section in the spec
+   (Claude's architectural judgment at spec time — which docs, what high-level change) and a
+   `## Doc Updates` section in the review ledger (filled by the reviewer when recording `Passed` —
+   concrete, ready-to-execute instructions). `/complete` step 3.5 reads the ledger section and
+   applies updates directly. No `gh issue create` for doc gaps; apply now or block.
+
+### Auto-updated (symlinks — no action needed)
+- `spec.md`: Step 1 rewritten — Case A (issue exists, use it) / Case B (no issue, create first);
+  "Create GitHub Issue" section rewritten to update vs. create; `### Doc Updates` section added to
+  spec template; standing "What NOT to Change" bullet for architectural docs.
+- `review.md`: `Doc Updates: Pending | Done | None` added to ledger header; `## Doc Updates`
+  section added to ledger format; step 4 of "What you do each round" requires filling this section
+  before setting `Status: Passed`.
+- `complete.md`: Step 3.5 rewritten — reads ledger `## Doc Updates` and applies changes directly;
+  hard rule: no `gh issue create` for doc gaps.
+
+### Skeleton file changes
+- None. No AGENT.md or other skeleton changes required.
+
+### Migration for existing projects
+- Symlinked files auto-update — no action needed for existing in-flight features.
+- Future `/spec` runs will create the issue first (Case B) or update the existing one (Case A).
+- Future `/review-impl` passing rounds must fill `## Doc Updates` in the ledger.
+- Future `/complete` runs will apply doc updates from the ledger rather than deferring.
+- Bump each project's `.workflow-version` to `8`.
+
+---
+
 ## v7 (2026-06-13)
 
 ### Summary

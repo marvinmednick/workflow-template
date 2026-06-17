@@ -37,7 +37,26 @@ Proceed to Step 1. Treat any design choices that arise as calls for user interac
 
 ## Step 1: Assign a Feature ID
 
-Use Glob to list `specs/F*.md` and `docs/design/F*.md`. Extract the highest number across both and increment by 1. If the feature is already in PLAN.md with an F-number, use that number — do not assign a new one.
+> **The F-number always equals the GitHub issue number.** Never derive it from local file counts.
+
+**Case A — Feature already has a GitHub issue** (PLAN.md row has an issue URL, or the feature came through `/feature`):
+- Use the F-number from PLAN.md — do not reassign
+- Do not create a new issue — the existing issue will be *updated* after the spec is written (see "Create a GitHub Issue" below)
+- Proceed to Step 2
+
+**Case B — No GitHub issue exists yet** (PLAN.md shows `—` for issue, feature not in PLAN.md, or going straight to `/spec` without `/feature`):
+- Before writing the spec, gather what you need: feature name, type label (`feature`/`enhancement`), effort label
+- Create the GitHub issue first — F-number is unknown until GitHub assigns it:
+  ```bash
+  N=$(gh issue create \
+    --title "[feature name]" \
+    --label "[feature|enhancement]" \
+    --label "effort:[small|medium|large]" \
+    --body "[brief summary — spec will be linked after it's written]" \
+    | grep -oE '[0-9]+$')
+  gh issue edit "$N" --title "F$N: [feature name]"
+  ```
+- F-number = N (GitHub-assigned). Write the spec using F$N.
 
 ## Step 2: Determine the Slug
 
@@ -101,17 +120,23 @@ The tracking comment keeps ID, GitHub issue, and Status out of the implementor's
 
 **`Closes:` field** — list every GitHub issue number that should be closed when this feature ships (the tracking issue + any batched sub-issues). If there is only one issue (the tracking issue itself), write `Closes: #[N]`. This field is read by `/complete` to close all issues explicitly via `gh issue close` — do not omit it.
 
-## Create a GitHub Issue:
+## Create or Update the GitHub Issue:
 
-After writing the spec file, run:
+**Case A — Issue already existed (from `/feature` or prior):**
+Update the existing issue with spec details and add the `specced` label:
 ```bash
-gh issue create \
-  --title "F[N]: [Feature Name]" \
-  --label "feature,specced" \
+gh issue edit [N] --add-label "specced" \
   --body "[Summary paragraph]\n\n## Spec\n[specs/F[N]-[slug].md](specs/F[N]-[slug].md)\n\n## Acceptance Criteria\n[bullet list from spec]"
 ```
+Update the tracking comment: replace `GitHub: #[N] (to be created)` with `GitHub: #[N]`.
 
-Update the tracking comment's `GitHub: #[N] (to be created)` with the assigned issue number (e.g. `GitHub: #3`). Use just the number — no URL.
+**Case B — Issue was created in Step 1:**
+The issue already exists. Update its body now that the spec is written:
+```bash
+gh issue edit [N] --add-label "specced" \
+  --body "[Summary paragraph]\n\n## Spec\n[specs/F[N]-[slug].md](specs/F[N]-[slug].md)\n\n## Acceptance Criteria\n[bullet list from spec]"
+```
+Update the tracking comment: replace `GitHub: #[N] (to be created)` with `GitHub: #[N]`.
 
 ## Update PLAN.md:
 
@@ -191,6 +216,17 @@ After writing the spec file, Claude appends each item to BACKLOG.md under "Defer
 ```
 This is a Claude action at spec-write time, already done before the implementor sees the spec.
 
+### Doc Updates
+
+List each architectural doc that will need updating when this feature ships, and what will need to change at a high level. The implementor does **not** touch these — they are applied by Claude at `/complete` time from the review ledger.
+
+```
+- `architecture/some-doc.md`: [what section needs adding or updating]
+- `DESIGN.md` §[Section]: [what to update]
+```
+
+If no architectural docs need updating: "None." (`CODING.md` updates go in "Files to Modify" and are handled by the implementor.)
+
 ### Suggestions (AI-generated)
 If Claude identified enhancement ideas during spec writing that were **not discussed with the user**, list them separately under this heading. These are Claude's own suggestions, not agreed-upon deferred work.
 
@@ -202,7 +238,8 @@ Present each suggestion to the user with a one-line description and ask for tria
 Do NOT add suggestions to BACKLOG.md without user approval. Do NOT reference "V2" or imply a roadmap that hasn't been discussed.
 
 ### What the Implementor Should NOT Change
-List any files or patterns that are out of scope for this implementation.
+List any files or patterns that are out of scope for this implementation. Always include:
+- Architectural docs listed in `### Doc Updates` above — those are applied by Claude at `/complete` time
 
 ## Design Review
 
