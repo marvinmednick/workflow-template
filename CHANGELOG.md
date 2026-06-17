@@ -5,6 +5,51 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v9 (2026-06-16)
+
+### Summary
+
+Closes two gaps left by v8:
+
+1. **`/design` Fresh Mode had the same F#-drift bug `/spec` did.** When `/design` was invoked on a
+   feature not yet in PLAN.md (skipping `/feature`), it assigned the F-number from the highest local
+   file count and created no GitHub issue. If `/spec` ran later, its issue-creation step would get a
+   *different* GitHub-assigned number than the one already baked into the design doc's filename and
+   PLAN.md row — the same class of mismatch that caused F23/#28. Fixed: `/design` Fresh Mode now
+   creates the issue first (when one doesn't already exist) and derives F# from it, matching `/spec`.
+
+2. **The create-issue-then-rename-to-`F$N`-sequence was duplicated three times** (`feature.md`,
+   `spec.md` Case B, `design.md` Fresh Mode) — exactly the kind of copy-pasted logic that drifts
+   silently when one call site is updated and the others aren't. Extracted into a single shared
+   script, `scripts/create-feature-issue.sh`, that all three now call. Plain (non-feature) issue
+   creation in `resolve.md` and `complete.md` is unaffected — it has no F#-derivation step and
+   doesn't need the script.
+
+### Auto-updated (symlinks — no action needed)
+- New `scripts/create-feature-issue.sh`: creates a GitHub issue, derives the F-number from it,
+  renames the issue title to `F$N: ...`, prints the number to stdout.
+- `feature.md`: Step 5b/5c collapsed into a single call to the shared script.
+- `spec.md`: Case B (no issue yet) now calls the shared script instead of inline `gh issue create`.
+- `design.md`: Fresh Mode Step 1 rewritten — issue-first numbering via the shared script, matching
+  `feature.md`/`spec.md`. Step 6's PLAN.md note corrected (issue link is no longer expected to stay
+  `—` until `/spec` — it's created at first registration, whichever command runs first).
+- `setup.sh` / `verify-links`: `create-feature-issue.sh` added to the scripts symlink list.
+
+### Skeleton file changes
+- None.
+
+### Migration for existing projects
+- Symlinked files auto-update — no action needed for in-flight features.
+- **Existing projects need the new script symlinked manually** (it didn't exist when they last ran
+  `setup.sh`): run `./verify-links` and accept the fix-it prompt, or manually:
+  ```bash
+  ln -sf "$WORKFLOW_TEMPLATE_DIR/scripts/create-feature-issue.sh" ./create-feature-issue.sh
+  chmod +x ./create-feature-issue.sh
+  ```
+- Bump each project's `.workflow-version` to `9`.
+
+---
+
 ## v8 (2026-06-16)
 
 ### Summary

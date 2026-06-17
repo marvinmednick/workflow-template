@@ -46,15 +46,9 @@ Proceed to Step 1. Treat any design choices that arise as calls for user interac
 
 **Case B — No GitHub issue exists yet** (PLAN.md shows `—` for issue, feature not in PLAN.md, or going straight to `/spec` without `/feature`):
 - Before writing the spec, gather what you need: feature name, type label (`feature`/`enhancement`), effort label
-- Create the GitHub issue first — F-number is unknown until GitHub assigns it:
+- Create the issue first using the shared script — F-number is unknown until GitHub assigns it:
   ```bash
-  N=$(gh issue create \
-    --title "[feature name]" \
-    --label "[feature|enhancement]" \
-    --label "effort:[small|medium|large]" \
-    --body "[brief summary — spec will be linked after it's written]" \
-    | grep -oE '[0-9]+$')
-  gh issue edit "$N" --title "F$N: [feature name]"
+  N=$(./create-feature-issue.sh --title "[feature name]" --type [feature|enhancement] --effort [small|medium|large] --body "[brief summary — spec will be linked after it's written]")
   ```
 - F-number = N (GitHub-assigned). Write the spec using F$N.
 

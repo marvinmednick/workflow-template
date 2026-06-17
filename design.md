@@ -34,12 +34,20 @@ If a doc is found, read its header comment (`<!-- ID: F[N] | Status: ... -->`) t
 
 ### Step 1 — F-number assignment
 
-If the feature is already in PLAN.md: use its existing F-number.
+> **The F-number always equals the GitHub issue number.** Never derive it from local file counts.
 
-If not in PLAN.md:
-- List `specs/F*.md` and `docs/design/F*.md` to find the highest F-number currently in use
-- Assign the next number
-- Add a row to PLAN.md with status `Backlog` (updated to `Designed` at the end)
+**If the feature is already in PLAN.md:** use its existing F-number. (If PLAN.md shows `—` for the
+issue column, the row was added without an issue yet — create the issue now using the steps below
+before proceeding, then fill in the PLAN.md issue link.)
+
+**If not in PLAN.md** (fresh feature, no `/feature` step was run first):
+- Gather: feature name, type label (`feature`/`enhancement`), effort label
+- Create the issue first using the shared script — F-number is unknown until GitHub assigns it:
+  ```bash
+  N=$(./create-feature-issue.sh --title "[feature name]" --type [feature|enhancement] --effort [small|medium|large] --body "[brief summary — design doc will be linked after it's written]")
+  ```
+- F-number = N (GitHub-assigned)
+- Add a row to PLAN.md with status `Backlog`, F$N, and the issue link (updated to `Designed` at the end)
 
 ### Step 2 — Context gathering
 
@@ -137,10 +145,10 @@ If the user has indicated they want to review the doc before considering it fina
   - If already in PLAN.md as `Backlog`: update status to `Designed`
 
 ```
-| F[N] | [Feature Name] | Designed | [docs/design/F[N]-[slug].md](docs/design/F[N]-[slug].md) | — |
+| F[N] | [Feature Name] | Designed | [docs/design/F[N]-[slug].md](docs/design/F[N]-[slug].md) | [#N](url) |
 ```
 
-(GitHub issue link stays `—` until `/spec` runs and creates the issue.)
+(The issue was created in Step 1 — either pre-existing from `/feature`, or created fresh in this session. The issue column should never be `—` once a design doc exists.)
 
 **`docs/design/ui-guidelines.md`:**
 For any decision flagged as "novel pattern" during Step 4, update the guidelines:

@@ -98,31 +98,19 @@ conveys *significance only*:
 
 Pick one based on the conversation.
 
-### 5b — Create the GitHub issue first, then read its number
-
-Create the issue with a plain descriptive title (no F-number yet — it isn't known until GitHub
-assigns the issue number), capturing the number it returns:
-
-```bash
-N=$(gh issue create \
-  --title "[item name]" \
-  --label "[feature|enhancement]" \
-  --label "effort:[small|medium|large]" \
-  --body "..." \
-  | grep -oE '[0-9]+$')
-```
+### 5b — Create the GitHub issue and derive the F-number
 
 Choose the effort label based on the conversation:
 - `effort:small` — touches 1–2 files, no schema change, no new screens
 - `effort:medium` — multiple files, possible schema change, or new UI surface
 - `effort:large` — new screens, significant schema change, or cross-cutting changes
 
-### 5c — Set the ID in the issue title
-
-The workflow ID is `F$N`. Prepend it to the title now that the number is known:
+Use the shared script — it creates the issue, reads the GitHub-assigned number, and renames the
+issue title to `F$N: ...` in one step (the canonical way every call site does this, so the F# =
+issue# invariant can't drift):
 
 ```bash
-gh issue edit "$N" --title "F$N: [item name]"
+N=$(./create-feature-issue.sh --title "[item name]" --type [feature|enhancement] --effort [small|medium|large] --body "...")
 ```
 
 ### 5d — Add to PLAN.md
