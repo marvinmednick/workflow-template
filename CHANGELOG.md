@@ -5,6 +5,44 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v11 (2026-06-25)
+
+### Summary
+
+Adds a `decision-needed` status and label for features that are blocked on a design or policy
+decision before normal `/design` → `/spec` work can begin.
+
+The pattern arose organically on patent-analysis (F43/#43): a feature was registered not to be
+implemented immediately but to formally track a pending design decision. Without this status, the
+only options were `Backlog` (implies ready to design) or leaving the feature out of the registry
+entirely. `Decision Needed` fills the gap — it's a first-class PLAN.md status that signals the
+feature exists but is explicitly blocked upstream.
+
+Changes:
+1. **New `decision-needed` GitHub label** — orange (#e4860e), created by `setup-github-labels.sh`
+   and required by `verify-repo`. Safe to re-run `setup-github-labels.sh` on existing repos.
+2. **`feature.md` Step 5 updated** — new Step 5b documents when to choose `Decision Needed` vs.
+   `Backlog`, how to apply the label, and the bold PLAN.md row convention. Steps 5b/5c/5d
+   renumbered (5b was previously unlabeled, now has an explicit status-selection step before it).
+
+### Auto-updated (symlinks — no action needed)
+- `scripts/setup-github-labels.sh`: adds `decision-needed` label.
+- `scripts/verify-repo`: `REQUIRED_LABELS` now includes `decision-needed`.
+- `feature.md`: Step 5 gains an explicit Step 5b for status selection; Step 5d shows both PLAN.md
+  row variants (Backlog vs. Decision Needed); Step 6 adds the decision-resolution next step.
+- `upgrade-workflow.md`: Step 0b now directs Claude to run `setup-github-labels.sh` automatically
+  when `verify-repo` reports missing labels (previously advisory; now directive).
+
+### Skeleton file changes
+- None.
+
+### Migration for existing projects
+- Run `/upgrade-workflow` — Step 0b will detect the missing label and run `setup-github-labels.sh`
+  automatically. No manual steps required.
+- Bump `.workflow-version` to `11`.
+
+---
+
 ## v10 (2026-06-16)
 
 ### Summary

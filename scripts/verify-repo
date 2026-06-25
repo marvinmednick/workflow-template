@@ -46,7 +46,7 @@ echo ""
 echo "=== Labels ==="
 
 REQUIRED_LABELS=(
-  "feature" "enhancement" "specced" "in-review"
+  "feature" "enhancement" "decision-needed" "specced" "in-review"
   "cleanup" "test-quality" "docs"
   "severity:high" "severity:medium" "severity:low"
   "effort:small" "effort:medium" "effort:large"

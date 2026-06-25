@@ -98,7 +98,23 @@ conveys *significance only*:
 
 Pick one based on the conversation.
 
-### 5b — Create the GitHub issue and derive the F-number
+### 5b — Determine the initial status
+
+Most features start at `Backlog` and proceed to `/design`. But if the conversation surfaced a
+fundamental design or policy question that must be answered before any design work can proceed,
+use status `Decision Needed` instead. This means:
+- The feature is blocked on an upstream decision (not just unclear requirements)
+- `/design` cannot run until the question is resolved
+- The `decision-needed` label is applied to the GitHub issue
+
+Criteria for `Decision Needed`:
+- Two or more mutually exclusive approaches are on the table and the choice changes the entire design
+- A stakeholder or policy decision must happen outside the normal design conversation
+- The feature was registered specifically to track the decision itself (not the implementation)
+
+If in doubt, use `Backlog` — `/design` can surface the question naturally.
+
+### 5c — Create the GitHub issue and derive the F-number
 
 Choose the effort label based on the conversation:
 - `effort:small` — touches 1–2 files, no schema change, no new screens
@@ -113,12 +129,24 @@ issue# invariant can't drift):
 N=$(./create-feature-issue.sh --title "[item name]" --type [feature|enhancement] --effort [small|medium|large] --body "...")
 ```
 
+If the status is `Decision Needed`, also apply the label:
+
+```bash
+gh issue edit $N --add-label "decision-needed"
+```
+
 ### 5d — Add to PLAN.md
 
-Add a row to the Active Features table (the `F<N>` ID equals the issue number):
+Add a row to the Active Features table (the `F<N>` ID equals the issue number).
 
+For a normal backlog item:
 ```
 | F[N] | [feature|enhancement] | [Item Name] | Backlog | — | [#N](url) |
+```
+
+For a decision-needed item:
+```
+| F[N] | [feature|enhancement] | [Item Name] | **Decision Needed** | — | [#N](url) |
 ```
 
 ---
@@ -133,3 +161,4 @@ Confirm:
 Suggest next steps:
 - `/design F[N]` — if requirements need discussion or a design doc is warranted before speccing
 - `/spec F[N]` — if the feature is simple enough to go straight to an implementation spec
+- Resolve the decision question (if status is `Decision Needed`) — then run `/design F[N]`

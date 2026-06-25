@@ -27,9 +27,13 @@ Run:
 ./verify-repo
 ```
 
-This checks GitHub authentication, required workflow labels, and project file structure. Fix any issues before continuing:
+This checks GitHub authentication, required workflow labels, and project file structure. Fix issues as follows:
 
-- **Missing labels** → run `~/Development/workflow_template/scripts/setup-github-labels.sh` (safe to re-run)
+- **Missing labels** → run the label setup script automatically (it's safe and idempotent):
+  ```bash
+  ~/Development/workflow_template/scripts/setup-github-labels.sh
+  ```
+  Then re-run `./verify-repo` to confirm all labels pass before continuing.
 - **Missing directories** → `mkdir plans specs`
 - **Missing files** → create empty `PLAN.md`, `BACKLOG.md`, or `IDEAS.md` as needed
 - **`.workflow-version` missing** → will be set at the end of this upgrade process
