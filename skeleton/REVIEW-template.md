@@ -16,7 +16,7 @@ Replace this template content with your project's actual mandatory patterns.
 
 **Test Coverage**
 - Does every item in the spec's Acceptance Criteria have a corresponding test?
-- Do all tests pass? (Run `./check-tests --show-known` from project root)
+- Do all tests pass? (verified by `./check-tests --show-known --if-stale` in review preamble — do not re-run here)
 - Are there zero skipped tests?
 
 **[Add project-specific test requirements here]**

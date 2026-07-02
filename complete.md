@@ -17,21 +17,13 @@ gh issue view [N] --json number,title,body,labels 2>/dev/null
 
 ## Step 1 — Verify Tests
 
-First check whether a recent passing run already covers the current working tree:
+Run the suite, skipping the re-run if the saved results are still fresh (nothing changed since tests last passed):
 
 ```bash
-# .last-test-output.txt is written by ./check-tests on every run
-stat .last-test-output.txt 2>/dev/null
-git log -1 --format="%ct" -- client/   # last commit time touching client/
+./check-tests --show-known --if-stale
 ```
 
-If `.last-test-output.txt` is **newer** than the last commit that touched `client/` and that run recorded zero failures, the baseline is already verified — skip the test run and note "tests verified by recent /review-impl run."
-
-Otherwise run the full suite:
-
-```bash
-./check-tests --show-known
-```
+`--if-stale` skips the run and reports the saved result when `.last-test-output.txt` is newer than any uncommitted source change — typical when `/review-impl` or the implementor already ran tests on the current tree. The suite runs in full when anything has changed since the last run.
 
 If unexpected failures are found: stop and report them. Do not proceed until the baseline is clean. If failures are pre-existing and known, note them and continue.
 

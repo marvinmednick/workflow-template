@@ -5,6 +5,8 @@
 #   ./check-tests                     # Run tests; fail if any unexpected failures
 #   ./check-tests --show-known        # Also print known failures that were observed
 #   ./check-tests --show-all          # Print a full failure report regardless of baseline
+#   ./check-tests --if-stale          # Skip re-run if .last-test-output.txt is newer than
+#                                     #   any uncommitted source change; re-run if stale
 #
 # Exit codes:
 #   0 — All failures are in the known list (or there are no failures)
@@ -19,13 +21,15 @@ set -euo pipefail
 
 SHOW_KNOWN=false
 SHOW_ALL=false
+IF_STALE=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --show-known) SHOW_KNOWN=true; shift;;
     --show-all)   SHOW_ALL=true; shift;;
+    --if-stale)   IF_STALE=true; shift;;
     -h|--help)
-      echo "Usage: ./check-tests [--show-known] [--show-all]"
+      echo "Usage: ./check-tests [--show-known] [--show-all] [--if-stale]"
       echo ""
       echo "  --show-known   Also print known failures that were observed"
       echo "  --show-all     Print full failure list regardless of baseline"
@@ -54,6 +58,33 @@ trap 'rm -rf "$TMPDIR_BASE"' EXIT
 RAW_OUTPUT="$TMPDIR_BASE/test-output.txt"
 FAILURES_FILE="$TMPDIR_BASE/failures.txt"
 LAST_OUTPUT=".last-test-output.txt"
+
+# --if-stale: skip re-run when saved output is newer than any uncommitted source change.
+# "Uncommitted source change" = any file shown by `git diff --name-only HEAD`.
+# If there are no such files (everything committed), the saved output is always fresh.
+if $IF_STALE && [[ -f "$LAST_OUTPUT" ]]; then
+  last_test_mtime=$(stat -c %Y "$LAST_OUTPUT" 2>/dev/null || echo 0)
+  # Find mtime of the newest uncommitted changed file (empty if none)
+  latest_change_mtime=$(git diff --name-only HEAD 2>/dev/null \
+    | xargs -r stat -c %Y 2>/dev/null \
+    | sort -rn | head -1 || true)
+  latest_change_mtime="${latest_change_mtime:-0}"
+  if [[ "$last_test_mtime" -gt "$latest_change_mtime" ]]; then
+    run_time=$(date -d "@$last_test_mtime" '+%Y-%m-%d %H:%M:%S' 2>/dev/null \
+      || date -r "$last_test_mtime" '+%Y-%m-%d %H:%M:%S' 2>/dev/null \
+      || echo "unknown time")
+    echo "Tests still valid — last run at $run_time, no source changes since."
+    # Re-surface the summary line from the saved output (starts with ✓, ✗, or ⚠)
+    last_summary=$(grep -E '^[✓✗⚠]' "$LAST_OUTPUT" | tail -1 || true)
+    [[ -n "$last_summary" ]] && echo "$last_summary"
+    # Exit with the same code the original run would have used
+    if echo "$last_summary" | grep -q '^✓'; then
+      exit 0
+    else
+      exit 1
+    fi
+  fi
+fi
 
 echo "Running tests..."
 # Run tests; capture output regardless of exit code

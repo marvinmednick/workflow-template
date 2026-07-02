@@ -5,6 +5,34 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v12 (2026-07-02)
+
+### Summary
+
+Adds `--if-stale` to `check-tests` so `/review-impl` and `/complete` can skip re-running the test suite when the implementor's results are still fresh. Fixes the `client/` hardcode in `complete.md` Step 1 that made the staleness check always miss on non-frontend projects.
+
+### Changes
+
+- **`scripts/check-tests`** — new `--if-stale` flag: skips the run and re-surfaces the saved summary when `.last-test-output.txt` is newer than any uncommitted source change (`git diff --name-only HEAD`). Runs in full when stale or when the saved file doesn't exist. Works with both `date -d` (GNU) and `date -r` (BSD) for the timestamp display.
+- **`complete.md` Step 1** — replaced the inline staleness check (which hardcoded `client/` and was broken for non-frontend projects) with `./check-tests --show-known --if-stale`. Description updated to explain the skip logic.
+- **`review.md`** — added a "Verify Tests" preamble block before the project-specific checklist. Instructs the reviewer to run `./check-tests --show-known --if-stale` rather than re-running the full suite unconditionally.
+- **`skeleton/REVIEW-template.md`** — updated the "Do all tests pass?" checklist item to note that tests are verified in the preamble, not re-run inline.
+
+### Migration for existing projects
+
+All changes are to symlinked files (`scripts/check-tests`, `complete.md`, `review.md`) and one skeleton file (`REVIEW-template.md`). Symlinked files auto-update. For the skeleton file, apply this change to your project's `REVIEW.md`:
+
+Change the "Do all tests pass?" line under Test Coverage from:
+```
+- Do all tests pass? (Run `./check-tests --show-known` from project root)
+```
+to:
+```
+- Do all tests pass? (verified by `./check-tests --show-known --if-stale` in review preamble — do not re-run here)
+```
+
+---
+
 ## v11 (2026-06-25)
 
 ### Summary

@@ -69,6 +69,16 @@ below), do not start a fresh one.
 
 Check the implementation against the patterns in CODING.md and the architecture in DESIGN.md.
 
+**Verify Tests**
+
+Before reading REVIEW.md, confirm the test suite passes. Use `--if-stale` to skip the re-run when the implementor's results are still fresh (saves time on the common case where the implementor ran tests immediately before this review):
+
+```bash
+./check-tests --show-known --if-stale
+```
+
+If the saved results are still fresh (no source changes since the last run), `check-tests` reports the prior result without re-running. If anything changed since the last run, it runs in full. If unexpected failures are found, stop and report them before continuing the review.
+
 **Project-Specific Checklist**
 
 Read `REVIEW.md` in the project root. For each checklist item listed there, evaluate the implementation and report **pass** / **fail** / **not-applicable** with a brief explanation.
