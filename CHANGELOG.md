@@ -5,6 +5,24 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v13 (2026-07-13)
+
+### Summary
+
+Adds `/revise` — a first-class path for revising an *already-implemented* feature (a post-ship respec), distinct from *superseding* (throw away → new ID). It archives the current revision's process artifacts, scaffolds a new revision section in the spec, and re-arms the plan→implement→review cycle **with no `implement` script change** (archiving the approved plan is what re-arms the Full-level gate).
+
+### Changes
+
+- **`revise.md`** (new command) — `/revise F[N]`: guard (feature must be past its first implementation), checkpoint the tree so "prior work" is a real ref, `git mv` the round's `plans/F[N]-{plan,plan-approved,progress,review}.md` → `-r{R}-` archive, evolve the spec in place with a `Revision N` section + a mandatory prior-work/context note (what shipped + ref, do-not-touch, archived-file pointers, carried-forward findings), set `PLAN.md` → `Revising`, optional `f{N}-r{R}-shipped` tag. Includes a revise-vs-supersede callout.
+- **`claude-stubs/revise.md`** (new) — slash-command stub.
+- **`skeleton/WORKFLOW-template.md`** — documents the revising-a-shipped-feature flow and the revise-vs-supersede distinction; adds `/revise` to Other Commands.
+
+### Migration for existing projects
+
+Commands and stubs are symlinked, so `/upgrade-workflow` (or `./verify-links`) creates the `commands/revise.md` and `.claude/commands/revise.md` symlinks automatically. For the skeleton file, add the "Revising a Shipped Feature" section + `/revise` row to your project's `WORKFLOW.md` (copy from the template).
+
+---
+
 ## v12 (2026-07-02)
 
 ### Summary

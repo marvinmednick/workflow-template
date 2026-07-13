@@ -58,10 +58,26 @@ Create batch issue → /resolve [batch-N] → ./implement I[batch-N] → /review
 
 Use when 2–5 small bugs share the same subsystem and can be handed to the implementor in a single pass.
 
+### Revising a Shipped Feature
+
+```
+/revise F[N] → ./implement F[N] --plan → /review-plan F[N] → ./implement F[N] → /review-impl F[N] → /complete F[N]
+```
+
+Use `/revise` when a **shipped feature needs to evolve** (a post-implementation respec). It keeps the
+same ID and issue, archives the current revision's process artifacts
+(`plans/F[N]-{plan,plan-approved,progress,review}.md` → `-r{R}-`), and re-arms the normal cycle —
+archiving the approved plan makes `./implement` require a fresh `--plan` with no script change.
+
+**Revise vs. supersede:** *revise* when the existing implementation is right and you're extending it
+(same ID). *Supersede* when it went the wrong direction and should be thrown away — that's a **new
+feature ID** (old one marked `Superseded`, old commits kept reachable via an archive git tag).
+
 ### Other Commands
 
 | Command | When |
 |---------|------|
+| `/revise F[N]` | Revise a shipped feature (post-ship respec) — archives the round's artifacts, re-arms the cycle |
 | `/design-review [context]` | After any workflow step that introduced a design decision or change |
 | `/fix-baseline` | Unexpected test failures exist before starting a feature |
 | `./check-tests` | Verify clean baseline before committing |
