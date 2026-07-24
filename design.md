@@ -106,6 +106,13 @@ Continue until all significant questions in both passes are resolved.
 
 ### Step 5 — Write the design doc
 
+**Authoring standard.** If the project has a `docs/design/design-doc-conventions.md`, author the doc
+to that standard — its authoring conventions, standard format, and the mandatory `## Document
+Conventions` section (which holds the doc's glossary and any doc-specific additions/overrides). The
+structure below is the default when no conventions doc exists. For a large feature designed
+section-by-section across sessions, keep the doc `Status: Draft` and review sections with
+`/review-doc` (see the project's conventions doc / CLAUDE.md).
+
 Write `docs/design/F[N]-[slug].md` with this structure:
 
 If the user has indicated they want to review the doc before considering it final (common when open questions remain or a dependency blocks the feature), set the header to `Status: Draft` instead of `Status: Designed`. Draft docs keep the feature at `Backlog` in PLAN.md with a `(draft)` annotation in the link column. Otherwise use `Status: Designed`.
@@ -113,6 +120,13 @@ If the user has indicated they want to review the doc before considering it fina
 ```markdown
 # Design: [Feature Name]
 <!-- ID: F[N] | Status: Designed -->  <!-- or: Status: Draft if user wants to review later -->
+
+## Document Conventions
+<!-- Include when the project has a design-doc-conventions.md (omit otherwise). -->
+Baseline: follows docs/design/design-doc-conventions.md (vN).
+Additions: [doc-specific conventions, or none]
+Overrides: [baseline conventions deliberately broken + rationale, or none]
+Glossary: [authoritative load-bearing vocabulary — one line per term]
 
 ## Overview
 [What this feature does and why — 2–4 sentences]
