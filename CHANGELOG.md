@@ -5,6 +5,38 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v14 (2026-08-02)
+
+### Summary
+
+Closes a gap in `/resolve` and `/review-impl` for no-spec resolve-path issues: there was no
+supported way to handle a fix applied out of order (before the GitHub issue existed) or to loop
+review findings back to a fix pass, since `./implement` requires a spec file and errors out
+without one.
+
+### Changes
+
+- **`resolve.md`** — Setup now checks, before the label branch, for (1) an existing review
+  ledger with `Open`/`Reopened` findings, routing to new **Path C — Addressing Review Findings**
+  (reads the ledger, fixes each finding, fills `Resolution`, sets `Addressed` — same field
+  ownership `./implement` follows, never sets `Verified`/`Deferred`/`Wontfix`), and (2) a fix
+  already on disk with no log file yet, routing straight to "Create Log Entry" to backfill
+  `plans/I[N]-log.md` from the actual diff instead of redoing the fix. "Create Log Entry" also
+  gained an explicit backfilling note for the same out-of-order case.
+- **`review.md`** — When a ledger comes back `Needs Fixes` on a no-spec resolve-path issue (log
+  file with `Workflow: resolve`, no spec/progress file), the reviewer now asks the user to choose
+  **Fix now** (apply fixes directly this session, matching `./implement`'s field-ownership rules)
+  or **Defer to `/resolve I[N]`** (leave the ledger `Open`, pointing at `/resolve` instead of
+  `./implement` in both the feature-log entry and the loop-continues message) — since spec-path
+  features still fix by handing back to `./implement` as before.
+
+### Migration for existing projects
+
+Both files are symlinked commands — `/upgrade-workflow` (or `./verify-links`) picks up the change
+automatically. No skeleton files changed; no manual action needed.
+
+---
+
 ## v13 (2026-07-13)
 
 ### Summary

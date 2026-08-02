@@ -248,7 +248,8 @@ If the ledger is `Passed`:
 - **Ledger:** plans/F[N]-review.md
 ```
 
-If the ledger is `Needs Fixes`:
+If the ledger is `Needs Fixes` **and this is a spec/implement-path feature** (progress file found
+in Step 0):
 ```markdown
 ## [DATE] — Review round [k] (Needs Fixes)
 - **Result:** Needs Fixes — [B] blocking, [NB] non-blocking still open
@@ -257,10 +258,50 @@ If the ledger is `Needs Fixes`:
 - **Ledger:** plans/F[N]-review.md
 ```
 
-**If `Needs Fixes`, tell the user the loop continues:**
+If the ledger is `Needs Fixes` **and this is a no-spec resolve-path issue** (log file with
+`Workflow: resolve` found in Step 0, no spec/progress file): there is no implementor agent to
+hand this off to automatically, so ask the user how to proceed:
+```
+AskUserQuestion — Needs Fixes: [B] blocking / [NB] non-blocking open. How do you want to address them?
+  - Fix now — apply the fixes directly this session, then re-run /review-impl to verify.
+  - Defer to /resolve I[N] — leave the findings Open in the ledger; running /resolve I[N] later
+    (a fresh session, optionally a different model) will detect the open ledger and address them.
+```
+
+**If "Fix now":** apply each `Open`/`Reopened` finding directly with Edit/Write, fill its
+`Resolution` field and set `Addressed` (same field ownership `./implement` follows for spec-path
+work — never set `Verified`/`Deferred`/`Wontfix` on your own fix). Then write:
+```markdown
+## [DATE] — Review round [k] (Needs Fixes — fixed inline)
+- **Result:** Needs Fixes — [B] blocking, [NB] non-blocking still open
+- **This round:** new [count], verified [count], reopened [count], addressed inline [count]
+- **Next:** run `/review-impl I[N]` again to verify the inline fixes
+- **Ledger:** plans/I[N]-review.md
+```
+
+**If "Defer":** leave the ledger untouched (`Open`/`Reopened`) and write:
+```markdown
+## [DATE] — Review round [k] (Needs Fixes)
+- **Result:** Needs Fixes — [B] blocking, [NB] non-blocking still open
+- **This round:** new [count], verified [count], reopened [count]
+- **Next:** run `/resolve I[N]` to address open findings, then `/review-impl I[N]` again
+- **Ledger:** plans/I[N]-review.md
+```
+
+**If `Needs Fixes` on a spec/implement-path feature, tell the user the loop continues:**
 ```
 Needs Fixes — [B] blocking / [NB] non-blocking open. Findings in plans/F[N]-review.md.
 Next: ./implement F[N]   (implementor addresses open findings)
 Then: /review-impl F[N]  (re-review — verifies fixes, adds any new findings)
+Repeat until the ledger reads Passed.
+```
+
+**If `Needs Fixes` on a no-spec resolve-path issue, tell the user the loop continues** (matching
+the Fix now / Defer choice above):
+```
+Needs Fixes — [B] blocking / [NB] non-blocking open. Findings in plans/I[N]-review.md.
+[Fix now chosen]  Fixed inline this round — run /review-impl I[N] again to verify.
+[Defer chosen]    Next: /resolve I[N]     (reads open ledger findings and fixes them)
+                  Then: /review-impl I[N] (re-review — verifies fixes, adds any new findings)
 Repeat until the ledger reads Passed.
 ```

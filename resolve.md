@@ -18,7 +18,23 @@ gh issue create --title "$ARGUMENTS" --label "bug"
 
 Record the assigned issue number — this is the I-number used for any spec or progress files.
 
-Read the issue labels to determine the path:
+**Before branching on labels**, check for existing process state that changes the path entirely:
+
+```bash
+ls plans/I${N}-review.md 2>/dev/null
+ls plans/I${N}-log.md 2>/dev/null
+```
+
+- **Review ledger exists with `Open`/`Reopened` findings** → skip investigation and the label
+  branch below entirely; go to "Path C — Addressing Review Findings". This is the loop
+  `/review-impl` hands back to when the user chose "defer to `/resolve`" on a no-spec issue.
+- **The fix is already in the working tree but no log file exists yet** (e.g. a quick fix was
+  made directly and the GitHub issue was filed afterward to track it) → don't redo the fix. Skip
+  straight to "Create Log Entry" below and backfill `plans/I[N]-log.md` from the diff that's
+  actually on disk (set `Path` to whichever of A/B it resembles), then report to the user and
+  stop — no code changes needed.
+
+Otherwise, read the issue labels to determine the path:
 - `bug` → run the full three-phase investigation below
 - `cleanup`, `test-quality`, `docs`, `enhancement` → skip investigation; read the issue and apply the fix directly
 - `feature` → stop and tell the user: this should go through `/spec` first to get an F-number and full implementation spec
@@ -124,6 +140,33 @@ Read the issue body carefully, then apply the fix directly:
 - Report the result and ask whether to commit via `/complete [N]`
 
 If the fix turns out to be larger or more complex than the issue described, stop and report rather than expanding scope unilaterally.
+
+---
+
+## Path C — Addressing Review Findings (ledger present)
+
+*Used when Stage Detection above found `plans/I[N]-review.md` with `Open`/`Reopened` findings —
+this is `/review-impl`'s "defer to `/resolve`" loop for a no-spec issue, not a fresh issue.*
+
+Read the ledger. For each `Open`/`Reopened` finding, in ID order:
+- Apply the fix using Edit/Write tools, per the finding's `Location` and `Required change`.
+- Fill the finding's `Resolution (implementor)` field with what was done and a file reference.
+- Set its Status to `Addressed`.
+
+**Field ownership** (the same rule `./implement` follows): only touch `Resolution` and the
+`Open`/`Reopened` → `Addressed` transition. Never set `Verified`, `Deferred`, or `Wontfix` —
+those are reviewer-only, even if you're confident a finding is resolved or invalid. If you
+believe a finding is wrong or not worth fixing, say so in `Resolution` and leave it `Open` for
+the reviewer to decide.
+
+If a finding turns out to be larger or more complex than its description suggests, stop and
+report rather than expanding scope unilaterally — same rule as Path B.
+
+Run `./check-tests --show-known` to verify nothing broke. Report the result and tell the user:
+```
+Findings addressed: [list of IDs]. Run /review-impl I[N] to verify.
+```
+Do not run `/review-impl` yourself — only the reviewer session verifies.
 
 ---
 
@@ -236,6 +279,11 @@ The code path responsible for this behavior could not be identified from static 
 ## Create Log Entry
 
 After the fix is verified (before committing), create `plans/[prefix][N]-log.md` — using the same identifier prefix as used in PLAN.md (e.g. `plans/I107-log.md` or `plans/F107-log.md`):
+
+**Backfilling (fix predates the issue or this command):** if the fix is already on disk — applied
+directly before `/resolve` was invoked, with the GitHub issue filed afterward to track it — write
+this same log describing the diff that's actually there, instead of re-deriving or reapplying the
+fix. Set `Path` to whichever of A/B the change resembles.
 
 ```markdown
 # [Issue title]
