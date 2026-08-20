@@ -5,6 +5,32 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v15 (2026-08-19)
+
+### Summary
+
+`/complete` Step 4 only ever triages BACKLOG.md items tagged to the feature just shipped, by
+design (added in v8). With no other mechanism sweeping cross-feature items, patent-analysis's
+BACKLOG.md climbed from 12 open items (last manual full scrub, 2026-06-28) to 52 by 2026-08-19,
+with each `/complete` run since removing only 1-3 items. Nothing was broken — the scoped design
+was working as written — but there was no periodic backstop restoring the old manual-scrub
+behavior.
+
+### Changes
+
+- **`complete.md`** — New **Step 4a — Full Backlog Sweep Check**, after Step 4's scoped triage.
+  Counts open BACKLOG.md items; if over 20, offers a full cross-feature sweep (same fix-now /
+  promote / discard framework as Step 4, but without the feature-tag scoping), worked in batches
+  of ~10-15 items rather than all at once, committed per batch. Skips silently under the
+  threshold; does not re-prompt within a session if declined.
+
+### Action for Existing Projects
+
+No skeleton changes. Symlinked `complete.md` picks up Step 4a automatically. If a project's
+BACKLOG.md has already grown large, the next `/complete` run will offer the sweep.
+
+---
+
 ## v14 (2026-08-02)
 
 ### Summary

@@ -174,6 +174,36 @@ If no ideas are relevant, note "no relevant ideas" and continue. Include any IDE
 
 ---
 
+## Step 4a — Full Backlog Sweep Check (cross-feature)
+
+Step 4's scope is deliberately narrow — only items tagged to the feature just shipped. That means
+items from *other* features never get triaged unless something else sweeps them. This step is
+that something else.
+
+Count open items:
+```bash
+grep -c '^\s*- \[ \]' BACKLOG.md
+```
+
+If the count is **20 or fewer**, skip this step — no action needed.
+
+If **over 20**, tell the user the current count and ask whether to run a full cross-feature sweep
+now or defer it. If deferring, note it and move on — do not nag on every future `/complete` once
+declined for this session.
+
+If running the sweep, apply the same fix-now / promote / discard framework as Step 4, but drop the
+feature-tag scoping restriction — every open item is in play. Work through the backlog in batches
+(roughly 10–15 items per batch) rather than presenting all of them at once: propose actions for one
+batch, get confirmation, apply it, then move to the next batch. This keeps each review pass
+reviewable instead of dumping the whole file on the user in one shot.
+
+Commit each batch's BACKLOG.md/issue changes as they're confirmed, same commit shape as Step 4
+(`chore: full backlog sweep (batch N, triage after [ID])`). It's fine for the sweep to span the
+rest of this session or be picked up again later — partial progress is still progress, unlike the
+scoped Step 4 triage which is expected to fully clear in one pass.
+
+---
+
 ## Step 4.5 — SESSION_NOTES Archive Check
 
 Check whether SESSION_NOTES.md has grown large enough to archive:
