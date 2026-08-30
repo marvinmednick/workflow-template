@@ -77,7 +77,7 @@ fi
 echo ""
 echo "=== Project structure ==="
 
-for dir in plans specs; do
+for dir in plans specs architecture; do
   if [[ -d "$dir" ]]; then
     check_ok "directory: $dir/"
   else

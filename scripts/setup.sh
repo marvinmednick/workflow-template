@@ -16,6 +16,17 @@ if [[ ! -d "$TEMPLATE" ]]; then
   exit 1
 fi
 
+echo "Creating project directories..."
+for dir in plans specs architecture; do
+  if [[ -d "$dir" ]]; then
+    echo "  exists   $dir/"
+  else
+    mkdir -p "$dir"
+    echo "  created  $dir/"
+  fi
+done
+
+echo ""
 echo "Linking commands/..."
 mkdir -p commands
 for cmd in complete.md design.md design-review.md feature.md fix-baseline.md \
@@ -77,6 +88,7 @@ echo "       cp $TEMPLATE/skeleton/WORKFLOW-template.md WORKFLOW.md"
 echo "       cp $TEMPLATE/skeleton/AGENT-template.md AGENT.md"
 echo "       cp $TEMPLATE/skeleton/CODING-template.md CODING.md"
 echo "       cp $TEMPLATE/skeleton/DESIGN-template.md DESIGN.md"
+echo "       cp $TEMPLATE/skeleton/DOCUMENTATION-CONVENTIONS-template.md architecture/01-documentation-conventions.md"
 echo "  2. Edit each file — fill in project-specific content"
 echo "  3. Create CLAUDE.md for Claude Code session guidance:"
 echo "       $TEMPLATE/scripts/setup-claude.sh"

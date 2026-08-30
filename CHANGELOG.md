@@ -5,6 +5,47 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v16 (2026-08-29)
+
+### Summary
+
+The workflow enforced *that* architecture docs get updated when a feature ships (`/spec` Doc Updates,
+`/review-impl`'s required ledger section, `/complete` Step 3.5's "apply now or block shipping"), but
+knew nothing about **architecture forks** — the convention where a doc being changed by open work is
+copied to `<name>_<ID>.md`, leaving `<name>.md` as shipped truth until the work completes. So doc
+updates were written against shipped truth while a fork was open and lost at the merge, and nothing
+ever triggered the merge itself. This makes when and how architecture docs change a workflow rule
+rather than a per-project convention.
+
+### Changes
+
+- **`skeleton/DOCUMENTATION-CONVENTIONS-template.md`** — New. What belongs in `architecture/` versus
+  `docs/design/` (separated by kind, not maturity); the three gates that keep the set current;
+  forking, two-level forks, and the fork banner; and the rules for migrating a large pre-convention
+  design doc in one unit at a time.
+- **`spec.md`** — Doc Updates must name the fork, not its base, wherever one is open.
+- **`review.md`** — Same for the review ledger's Doc Updates section.
+- **`complete.md`** — Step 3.5 gains **Merge architecture forks**: merge inward-out (a two-level fork
+  merges into its outer fork, not the base), delete the fork, handle a fork with no base, delete any
+  document the merge retires along with its index entry, and update the architecture index.
+- **`scripts/setup.sh`** — Creates `plans/`, `specs/` and `architecture/` for a new project, and
+  lists the conventions doc among the skeleton files to copy.
+- **`scripts/verify-repo`** — Checks for `architecture/` alongside `plans/` and `specs/`.
+
+### What existing projects need to do
+
+1. `mkdir architecture` if the project does not have one — `verify-repo` now checks for it.
+2. Copy the conventions doc and link it from the architecture index:
+   ```
+   cp ~/Development/workflow_template/skeleton/DOCUMENTATION-CONVENTIONS-template.md \
+      architecture/01-documentation-conventions.md
+   ```
+   Delete its template note block and add anything project-specific to the index instead.
+
+Command and script changes are symlinked and take effect immediately.
+
+---
+
 ## v15 (2026-08-19)
 
 ### Summary

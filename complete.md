@@ -120,6 +120,38 @@ what to write; this step executes it.
 
 **Hard rule:** No `gh issue create` for doc gaps. Apply now or block shipping.
 
+### Merge architecture forks
+
+Skip this if the project has no `architecture/` directory. Otherwise the conventions are in
+`architecture/01-documentation-conventions.md`.
+
+Find any fork this work opened:
+
+```bash
+ls architecture/**/*_F[N].md architecture/**/*_I[N].md 2>/dev/null
+```
+
+For each one, where `<name>_<ID>.md` is the fork and `<name>.md` its base:
+
+1. **Merge inward-out.** A two-level fork `<name>_F<a>_F<b>.md` merges into `<name>_F<a>.md`, *not*
+   into `<name>.md` — the outer fork stays open until its own feature completes. Only a first-level
+   fork merges into the base.
+2. **Fold the fork's content into its target**, then delete the fork. It stays retrievable from the
+   merge commit.
+3. **If the base does not exist**, the fork simply becomes `<name>.md` — remove its in-design banner.
+4. **If the merge replaces the base rather than extending it**, delete the document it retires and
+   remove its index entry in the same commit. Rename the merged file if it is now named for a system
+   it no longer describes.
+5. **Update the architecture index** — remove the fork's entry, add or correct the base's.
+
+```bash
+git add architecture/
+git commit -m "docs: merge [fork] into [base] for F[N]"
+```
+
+**Leave a fork open** if its feature is not the one shipping. A fork whose outer fork merged before it
+re-bases onto whatever the outer merged into; note that in its banner.
+
 ---
 
 ## Step 4 — Triage BACKLOG.md

@@ -124,10 +124,13 @@ field ownership** so neither side certifies its own work.
 
 ## Doc Updates
 <!-- Filled by reviewer when recording Implementation: Complete. Required — cannot set Status: Passed without this section. -->
+<!-- Name the FORK, not its base, wherever one is open — see architecture/01-documentation-conventions.md -->
 - `architecture/some-doc.md` §Section: [concrete description of what to add or change — enough for Claude to open the file and make the edit without re-reading the whole feature]
 - `DESIGN.md` §Section: [what to update]
 <!-- If no architectural docs need updating, write: None -->
 ```
+
+**Architecture forks.** In a project with an `architecture/` directory, a doc being changed by open work is forked to `<name>_<ID>.md` and that fork is the only edit surface. Before listing a doc here, check whether a fork of it exists and name the fork instead — an update applied to the base is lost when the fork merges. If this feature opened its own fork, that is the doc to name.
 
 ### Finding IDs
 
