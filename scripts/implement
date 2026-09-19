@@ -203,10 +203,12 @@ fi
 echo ""
 
 # Capture test baseline before implementation begins (skip during plan-only mode)
+# --if-stale skips the re-run when the saved result is still fresh (e.g. immediately after a
+# review-impl run, or back-to-back implement passes with no source changes in between).
 if [[ "$PLAN_MODE" == false ]]; then
   if [[ -f "./check-tests" ]]; then
     echo "Capturing test baseline before implementation..."
-    if ! ./check-tests 2>&1; then
+    if ! ./check-tests --if-stale 2>&1; then
       echo ""
       echo "⚠  Unexpected test failures exist before implementation starts."
       echo "   Run /fix-baseline in Claude Code to resolve pre-existing failures first,"
@@ -235,9 +237,9 @@ case "$TOOL" in
     if [[ "$PLAN_MODE" == true ]]; then
       PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary."
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
-      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done."
+      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
     else
-      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done."
+      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
     fi
     echo "Running: codex (interactive)${MODEL:+ (model: $MODEL)}"
     echo "NOTE: Codex will process the initial message then stay interactive."
@@ -251,9 +253,9 @@ case "$TOOL" in
     if [[ "$PLAN_MODE" == true ]]; then
       PROMPT="Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and wait for my approval. Type \"approved\" to proceed with implementation."
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
-      PROMPT="The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done."
+      PROMPT="The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
     else
-      PROMPT="Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done."
+      PROMPT="Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
     fi
     echo "Running: gemini \"$PROMPT\""
     echo ""
@@ -324,10 +326,10 @@ case "$TOOL" in
       # Aider processes the message and then stays in interactive mode.
       # Type 'continue' after each response to proceed with remaining files.
       if [[ "$HAS_APPROVED_PLAN" == true ]]; then
-        IMPL_PROMPT=$(printf 'The following implementation plan has been reviewed and approved by Claude and the user. Follow it exactly. Proceed directly — do not ask for confirmation.\n\n---BEGIN APPROVED PLAN---\n%s\n---END APPROVED PLAN---\n\nCheck %s for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain %s throughout: append a progress entry after each file. After all files are implemented, run '"'"'%s'"'"' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done.' \
+        IMPL_PROMPT=$(printf 'The following implementation plan has been reviewed and approved by Claude and the user. Follow it exactly. Proceed directly — do not ask for confirmation.\n\n---BEGIN APPROVED PLAN---\n%s\n---END APPROVED PLAN---\n\nCheck %s for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain %s throughout: append a progress entry after each file. After all files are implemented, run '"'"'%s'"'"' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.' \
           "$(< "$APPROVED_PLAN_FILE")" "$PROGRESS_FILE" "$PROGRESS_FILE" "$TEST_CMD")
       else
-        IMPL_PROMPT=$(printf 'Implement the spec provided in context (read-only). Maintain %s throughout: append a progress entry after completing each file. After all files are implemented, run '"'"'%s'"'"' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done.' \
+        IMPL_PROMPT=$(printf 'Implement the spec provided in context (read-only). Maintain %s throughout: append a progress entry after completing each file. After all files are implemented, run '"'"'%s'"'"' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.' \
           "$PROGRESS_FILE" "$TEST_CMD")
       fi
 
@@ -349,9 +351,9 @@ case "$TOOL" in
     if [[ "$PLAN_MODE" == true ]]; then
       PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and stop."
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
-      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done."
+      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
     else
-      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests (run again to confirm all pass). List all files changed and paste the final test output when done."
+      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
     fi
     echo "Running: claude (new subprocess — isolated context)"
     echo ""

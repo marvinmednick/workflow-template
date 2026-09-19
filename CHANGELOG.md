@@ -5,6 +5,30 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v17 (2026-09-18)
+
+### Summary
+
+`./implement`'s pre-implementation baseline check always ran the full suite, even when
+`/review-impl` (or a prior `./implement` pass) had just run it moments earlier with no source
+changes in between — the same redundant-rerun problem `review.md` already solved for its own
+pre-review check via `--if-stale`. Separately, every implementor prompt told the agent to "run
+tests, fix failures, run again to confirm all pass," which agents read as "always run twice" —
+including on a clean first pass with nothing to fix.
+
+### Changes
+
+- **`scripts/implement`** — Pre-implementation baseline check now calls `./check-tests --if-stale`
+  instead of `./check-tests`, skipping the re-run when the saved result is still fresh.
+- **`scripts/implement`**, **`implement.md`** — Implementor test instructions reworded: run once,
+  fix and rerun only if something failed; an initial clean pass does not require a second full run.
+
+### What existing projects need to do
+
+Nothing. Command and script changes are symlinked and take effect immediately.
+
+---
+
 ## v16 (2026-08-29)
 
 ### Summary

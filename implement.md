@@ -70,7 +70,8 @@ Maintain `plans/[ID]-progress.md` throughout: append one delta entry per file fi
 never rewrite or re-emit the full file list.
 
 When every plan item is complete AND no finding reads `Open`/`Reopened`:
-- Run `[TEST_CMD]`; fix any failing tests and run again to confirm all pass.
+- Run `[TEST_CMD]`. If it fails, fix the failures and rerun to confirm. If the initial run passes,
+  do not run the full suite again — a redundant second full run is not required.
 - Clear the "Before Reporting Done" self-check in AGENT.md: reconcile the progress bookmark so no stale
   trailing entry survives, confirm `git status` matches what you'll report, no open findings, tests pass.
 
