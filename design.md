@@ -178,7 +178,7 @@ list every screen and function in scope in the parity matrix.
   neither the forced-change rows nor an approved suggestion is a defect, not a design choice.
 - **Screens are checked by measurement, not by eye.** When the legacy system can be run, plan a first phase
   that builds a comparison harness: it logs in read-only, captures each screen in each state listed in the
-  matrix (fixed viewport, animations off, clock frozen, explicit ready condition), records computed styles,
+  matrix (fixed viewport, animations off, explicit ready condition; freeze the clock only if displayed dates change the layout), records computed styles,
   geometry and text, and reports differences ranked, with an explained-differences file whose entries cite a
   matrix row or an approved suggestion. Pixel diffs and committed baseline screenshots are optional and
   usually not worth their noise. If the implementor is expected to read screenshots, test that it can.
