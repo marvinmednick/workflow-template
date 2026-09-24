@@ -33,9 +33,10 @@ first-class part of the workflow.
 - **`complete.md`** — `/complete F4.N` closes a phase (verify, commit, doc updates, `Phase N closed` log
   entry, `PLAN.md` phase status, refresh of the next phase); `/complete F4` closes the issue only when every
   phase is closed.
-- **`design.md`** — Optional `## Phases` and `## Legacy Parity Matrix` sections, and the rule that a
-  feature rebuilding an existing system follows its behaviour unless something underlying prevents it,
-  with each deviation put to the user as its own question.
+- **`design.md`** — Optional `## Phases`, `## Legacy Parity Matrix` and `## Suggested Changes` sections.
+  A feature rebuilding an existing system follows its behaviour; a forced change or a drop needs a
+  reason, and an improvement goes in the suggestions table. Each is put to the user as its own question;
+  only approved suggestions are built, and any other difference is a defect.
 - **`skeleton/AGENT-template.md`** — New sections: End-of-Run Report (a fixed format with a checklist and
   exact next steps for the user), Phased Features, Tests Before Reporting (preflight; never skip tests).
   The old "Reporting Back" section is replaced.
