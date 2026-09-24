@@ -94,6 +94,15 @@ Read `REVIEW.md` in the project root. For each checklist item listed there, eval
 
 If no `REVIEW.md` exists, note this and review for general correctness only (no project-specific patterns to check).
 
+**Legacy parity check** (when the design doc has a Legacy Parity Matrix)
+
+For the screens in scope, compare the implementation with the legacy system (its running instance and
+source, or the comparison harness report if the project has one), not with the spec's description. Every
+difference must be a forced change, a drop or an approved suggestion in the design doc; any other
+difference is a **blocking** finding (a defect, whatever its merit). Check also that nothing was added that
+legacy does not have, and that each state in the matrix was compared. Record the verdict under the
+Implementation heading of the ledger.
+
 ---
 
 ## Review Ledger — `plans/F[N]-review.md`

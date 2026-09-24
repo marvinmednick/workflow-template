@@ -156,8 +156,8 @@ Glossary: [authoritative load-bearing vocabulary — one line per term]
 
 ## Legacy Parity Matrix
 <!-- Include when the feature rebuilds screens or functions of an existing system. -->
-| Legacy screen or function (with source path) | Decision: kept / forced change / dropped | Reason (required for forced change or dropped: what in the new system cannot behave the same way) |
-|---|---|---|
+| Legacy screen or function (with source path) | States to compare (default, empty, error, dialog or menu open, ...) | Decision: kept / forced change / dropped | Reason (required for forced change or dropped: what in the new system cannot behave the same way) |
+|---|---|---|---|
 
 ## Suggested Changes
 <!-- Improvements to legacy behaviour that are not forced. Each is discussed with the user on its own. -->
@@ -176,6 +176,12 @@ list every screen and function in scope in the parity matrix.
   the user's answer. Only approved suggestions are built.
 - Anything not in either table is kept as it is. A difference from the legacy behaviour that is in
   neither the forced-change rows nor an approved suggestion is a defect, not a design choice.
+- **Screens are checked by measurement, not by eye.** When the legacy system can be run, plan a first phase
+  that builds a comparison harness: it logs in read-only, captures each screen in each state listed in the
+  matrix (fixed viewport, animations off, clock frozen, explicit ready condition), records computed styles,
+  geometry and text, and reports differences ranked, with an explained-differences file whose entries cite a
+  matrix row or an approved suggestion. Pixel diffs and committed baseline screenshots are optional and
+  usually not worth their noise. If the implementor is expected to read screenshots, test that it can.
 
 ### Step 6 — Update PLAN.md and UI Guidelines
 

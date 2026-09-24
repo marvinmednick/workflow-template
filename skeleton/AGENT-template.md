@@ -284,6 +284,16 @@ file says `F[N]`** (`plans/F4.2-plan.md`, `plans/F4.2-progress.md`, `plans/F4.2-
   even if you have context left and the next step looks obvious. The user reviews and closes each
   phase before the next one is planned.
 
+## Legacy Parity
+
+When the spec rebuilds an existing system's screens or functions, that system (its running instance and
+source) is the specification. Reproduce its layout, texts and behaviour; do not improve, tidy or add
+anything. The only permitted differences are the forced changes and dropped items in the spec's parity rows
+and the approved suggestions; every other difference is a defect. If legacy behaviour looks wrong, or you
+cannot reproduce it in the new system, do not decide: stop, record it under Open questions in the
+End-of-Run Report (or under Ambiguities in the plan), and let the user decide. Report every remaining
+difference from legacy, with its explanation, under Deviations.
+
 ## Tests Before Reporting
 
 Run the full `TEST_CMD` once. If the run needs something running (a stack, a browser), check it first

@@ -5,6 +5,32 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v19 (2026-09-24)
+
+### Summary
+
+v18 added the parity matrix and the suggested-changes list to `/design`, but nothing downstream enforced
+them: `/spec`, `/review-plan`, `/review-impl` and the implementor's `AGENT.md` did not carry the rule, so a
+first implementation was built from the spec's own description and diverged from the legacy screens.
+
+### What changed
+
+- **`spec.md`** — "Legacy parity": the spec reproduces the matrix rows for its scope and adds no UI,
+  text or behaviour beyond them and the approved suggestions; gaps go to the user as new questions.
+- **`review-plan.md`** — a Legacy parity checklist: nothing added or omitted; every difference is listed.
+- **`review.md`** — Legacy parity check: compare with the running legacy system (or the harness report), not
+  the spec; an unexplained difference is a blocking finding.
+- **`design.md`** — the matrix gets a *States to compare* column; guidance to plan a measured comparison
+  harness as a first phase when the legacy system can be run.
+- **`skeleton/AGENT-template.md`** — new section "Legacy Parity" for implementors.
+
+### What existing projects need to do
+
+Command changes are symlinked and live. For projects rebuilding an existing system: add the "Legacy Parity"
+section from `AGENT-template.md` to `AGENT.md` and set `.workflow-version` to 19.
+
+---
+
 ## v18 (2026-09-24)
 
 ### Summary

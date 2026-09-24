@@ -29,6 +29,15 @@ earlier phases changed the picture. If earlier phases changed anything the share
 phases rely on, list the changes to make and make them with the user's agreement. Then suggest
 `./implement F[N].[P] --plan`.
 
+### Legacy parity
+If the design doc has a Legacy Parity Matrix, the spec **reproduces the rows for its scope verbatim** (or
+cites them by section) and adds nothing to the screens or behaviour beyond them and the approved
+suggestions. Do not invent or improve UI, texts, layout or behaviour the legacy system does not have. If a
+gap appears (a state the matrix does not cover, something the legacy source does not settle), read the
+running system or its source; if that does not answer it, stop and put it to the user as its own question,
+as a new forced change or suggestion. The spec's acceptance criteria for a screen say "no unexplained
+difference from legacy", not a description of how it should look.
+
 ---
 
 ## Step 0: Design Doc Check

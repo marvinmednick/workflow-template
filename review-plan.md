@@ -27,6 +27,12 @@ Check the plan against the spec for each item:
   Registration
 - Nothing contradicts the spec's "What the Implementor Should NOT Change" section
 
+**Legacy parity** (when the design doc has a Legacy Parity Matrix)
+- The plan builds what the matrix rows and approved suggestions describe, nothing more: no added
+  features, texts or styling, no omitted rows
+- Every difference from legacy the plan introduces is a listed forced change, a drop, or an approved
+  suggestion; anything else is a finding
+
 **Precision**
 - UI element additions state: what the element is, where it appears in the layout (position
   relative to siblings), and what triggers it — not just that it exists
