@@ -3,9 +3,14 @@
 #
 # Usage: ./implement <ID> [--tool codex|gemini|aider] [--model <model>] [--plan [--force]]
 #
-#   <ID>          Feature ID (F1) or issue ID (I4 = GitHub issue #4)
+#   <ID>          Feature ID (F1), issue ID (I4 = GitHub issue #4), or a phase of a phased
+#                 feature (F4.2 = phase 2 of F4). A phased spec has a `**Phases:** N` header and
+#                 `## Phase N` sections; the implementor is given only the shared sections plus the
+#                 requested phase, and per-phase plan/progress/ledger files (plans/F4.2-*).
 #   --plan        Stage 1: write implementation plan only, no code
 #   --force       Overwrite existing plan (use with --plan)
+#   --skip-entry-check   Phase N>1: do not require phase N-1 to be closed (ledger Passed + log entry)
+#   --skip-preflight     Do not run PREFLIGHT_CMD from .implement.conf
 #   --tool        codex, gemini, or aider (overrides IMPLEMENT_TOOL env and .implement.conf)
 #   --model       Model override (overrides IMPLEMENT_MODEL env and .implement.conf)
 #
@@ -33,6 +38,8 @@
 #   tool=codex
 #   model=gpt-5.4
 #   TEST_CMD=npm --prefix client test -- --watchAll=false
+#   PREFLIGHT_CMD=curl -sf http://localhost:8000/health/   # optional; must succeed before tests run
+#   PREFLIGHT_HELP=Start the stack first: ./dsc.sh start all  # optional; shown when preflight fails
 #   KNOWN_FILE=client/known-test-failures.txt
 #   SPEC_FILE_PATTERN=client|supabase/migrations
 #   AIDER_REFERENCE_FILE=client/components/__tests__/MyFile-test.tsx   # optional
@@ -44,6 +51,8 @@ TOOL=""
 MODEL=""
 PLAN_MODE=false
 FORCE=false
+SKIP_ENTRY=false
+SKIP_PREFLIGHT=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -52,10 +61,12 @@ while [[ $# -gt 0 ]]; do
     --model)     MODEL="$2"; shift 2;;
     --plan)      PLAN_MODE=true; shift;;
     --force)     FORCE=true; shift;;
+    --skip-entry-check) SKIP_ENTRY=true; shift;;
+    --skip-preflight)   SKIP_PREFLIGHT=true; shift;;
     -h|--help)
       echo "Usage: ./implement <ID> [--tool codex|gemini|aider] [--model <model>] [--plan [--force]]"
       echo ""
-      echo "  ID         F1 (feature) or I4 (issue — matches GitHub issue #4)"
+      echo "  ID         F1 (feature), I4 (issue — matches GitHub issue #4) or F4.2 (phase 2 of F4)"
       echo "  --plan     Stage 1: write plan only (no code)"
       echo "  --force    Overwrite existing plan"
       echo ""
@@ -75,8 +86,17 @@ done
 if [[ -z "$SPEC_ID" ]]; then
   echo "Usage: ./implement <ID> [--tool codex|gemini|aider] [--model <model>] [--plan [--force]]"
   echo ""
-  echo "  ID must be a feature ID (F1) or issue ID (I4)"
+  echo "  ID must be a feature ID (F1), issue ID (I4) or a phase (F4.2)"
   exit 1
+fi
+
+# Phase syntax: F4.2 = phase 2 of feature F4. The spec, design and issue belong to F4; the plan,
+# progress file and review ledger belong to the phase (plans/F4.2-*).
+BASE_ID="$SPEC_ID"
+PHASE=""
+if [[ "$SPEC_ID" =~ ^([FI][0-9]+)\.([0-9]+)$ ]]; then
+  BASE_ID="${BASH_REMATCH[1]}"
+  PHASE="${BASH_REMATCH[2]}"
 fi
 
 # Resolve tool: --tool arg > IMPLEMENT_TOOL env > .implement.conf > error
@@ -88,6 +108,8 @@ TEST_CMD=""
 KNOWN_FILE=""
 SPEC_FILE_PATTERN=""
 AIDER_REFERENCE_FILE=""
+PREFLIGHT_CMD=""
+PREFLIGHT_HELP=""
 
 if [[ -f "$CONFIG_FILE" ]]; then
   CONFIG_TOOL=$(grep '^tool=' "$CONFIG_FILE" | head -1 | sed 's/^tool=//' | tr -d '[:space:]' || true)
@@ -95,6 +117,8 @@ if [[ -f "$CONFIG_FILE" ]]; then
   TEST_CMD=$(grep '^TEST_CMD=' "$CONFIG_FILE" | head -1 | sed 's/^TEST_CMD=//' || true)
   KNOWN_FILE=$(grep '^KNOWN_FILE=' "$CONFIG_FILE" | head -1 | sed 's/^KNOWN_FILE=//' | tr -d '[:space:]' || true)
   SPEC_FILE_PATTERN=$(grep '^SPEC_FILE_PATTERN=' "$CONFIG_FILE" | head -1 | sed 's/^SPEC_FILE_PATTERN=//' | tr -d '[:space:]' || true)
+  PREFLIGHT_CMD=$(grep '^PREFLIGHT_CMD=' "$CONFIG_FILE" | head -1 | sed 's/^PREFLIGHT_CMD=//' || true)
+  PREFLIGHT_HELP=$(grep '^PREFLIGHT_HELP=' "$CONFIG_FILE" | head -1 | sed 's/^PREFLIGHT_HELP=//' || true)
   AIDER_REFERENCE_FILE=$(grep '^AIDER_REFERENCE_FILE=' "$CONFIG_FILE" | head -1 | sed 's/^AIDER_REFERENCE_FILE=//' | tr -d '[:space:]' || true)
 fi
 
@@ -143,12 +167,68 @@ if [[ -z "$SPEC_FILE_PATTERN" ]]; then
 fi
 
 # Find the spec file
-SPEC_FILE=$(find specs -name "${SPEC_ID}-*.md" 2>/dev/null | head -1)
+SPEC_FILE=$(find specs -name "${BASE_ID}-*.md" 2>/dev/null | head -1)
 if [[ -z "$SPEC_FILE" ]]; then
-  echo "Error: No spec file found for ${SPEC_ID} in specs/"
+  echo "Error: No spec file found for ${BASE_ID} in specs/"
   echo "Available specs:"
   ls specs/*.md 2>/dev/null | sed 's/^/  /' || echo "  (none)"
   exit 1
+fi
+FULL_SPEC_FILE="$SPEC_FILE"
+
+# Phased specs: `**Phases:** N` in the header, `## Phase N` sections in the body.
+SPEC_PHASES=$(grep -oP '(?<=\*\*Phases:\*\* )[0-9]+' "$FULL_SPEC_FILE" 2>/dev/null | head -1 || true)
+if [[ -n "$SPEC_PHASES" ]] && [[ -z "$PHASE" ]]; then
+  echo "Error: ${BASE_ID} is a phased feature (${SPEC_PHASES} phases); implement one phase at a time."
+  echo "  ./implement ${BASE_ID}.1${PLAN_MODE:+ --plan}"
+  exit 1
+fi
+if [[ -n "$PHASE" ]]; then
+  if [[ -z "$SPEC_PHASES" ]]; then
+    echo "Error: ${FULL_SPEC_FILE} has no '**Phases:** N' header, so ${SPEC_ID} is not a valid phase ID."
+    exit 1
+  fi
+  if (( PHASE < 1 || PHASE > SPEC_PHASES )); then
+    echo "Error: ${BASE_ID} has ${SPEC_PHASES} phases; ${SPEC_ID} is out of range."
+    exit 1
+  fi
+  HEADINGS=$(grep -cE '^## Phase [0-9]+' "$FULL_SPEC_FILE" || true)
+  if [[ "$HEADINGS" != "$SPEC_PHASES" ]]; then
+    echo "Error: ${FULL_SPEC_FILE} declares ${SPEC_PHASES} phases but has ${HEADINGS} '## Phase N' sections."
+    exit 1
+  fi
+  # The phase's block, to check that its detail has been written (see /spec F4.N).
+  PHASE_BLOCK=$(awk -v want="$PHASE" '
+    /^## / { on = 0; if ($0 ~ /^## Phase [0-9]+/) { n = $3; sub(/[^0-9].*/, "", n); if (n == want) on = 1 } }
+    on { print }' "$FULL_SPEC_FILE")
+  if [[ -z "$PHASE_BLOCK" ]]; then
+    echo "Error: no '## Phase ${PHASE}' section in ${FULL_SPEC_FILE}."
+    exit 1
+  fi
+  if grep -q '<!-- detail: pending' <<<"$PHASE_BLOCK"; then
+    echo "Error: Phase ${PHASE} of ${BASE_ID} is still marked '<!-- detail: pending -->'."
+    echo "  Its file and test lists have not been written yet. Run /spec ${SPEC_ID} in Claude Code first."
+    exit 1
+  fi
+  # Entry check: the previous phase must be closed (ledger Passed and a 'Phase N closed' log entry).
+  if (( PHASE > 1 )) && [[ "$SKIP_ENTRY" == false ]]; then
+    PREV=$((PHASE - 1))
+    PREV_LEDGER="plans/${BASE_ID}.${PREV}-review.md"
+    LOG_FILE="plans/${BASE_ID}-log.md"
+    if ! grep -q '\*\*Status:\*\* Passed' "$PREV_LEDGER" 2>/dev/null \
+       || ! grep -q "Phase ${PREV} closed" "$LOG_FILE" 2>/dev/null; then
+      echo "Error: phase ${PREV} of ${BASE_ID} is not closed, so phase ${PHASE} cannot start."
+      echo "  Needed: ${PREV_LEDGER} with Status: Passed, and a '## <date> — Phase ${PREV} closed' entry in ${LOG_FILE}."
+      echo "  Close it with /complete ${BASE_ID}.${PREV} in Claude Code (or pass --skip-entry-check to override)."
+      exit 1
+    fi
+  fi
+  # Give the implementor only the shared sections plus this phase.
+  mkdir -p .implement-cache
+  SPEC_FILE=".implement-cache/${SPEC_ID}-spec.md"
+  awk -v want="$PHASE" '
+    /^## / { skip = 0; if ($0 ~ /^## Phase [0-9]+/) { n = $3; sub(/[^0-9].*/, "", n); if (n != want) skip = 1 } }
+    !skip { print }' "$FULL_SPEC_FILE" > "$SPEC_FILE"
 fi
 
 PLAN_FILE="plans/${SPEC_ID}-plan.md"
@@ -174,7 +254,7 @@ if [[ "$PLAN_MODE" == true ]] && [[ "$FORCE" == false ]]; then
 fi
 
 # Extract review level from spec header
-REVIEW_LEVEL=$(grep -oP '(?<=\*\*Review Level:\*\* )\S+' "$SPEC_FILE" 2>/dev/null | head -1 || true)
+REVIEW_LEVEL=$(grep -oP '(?<=\*\*Review Level:\*\* )\S+' "$FULL_SPEC_FILE" 2>/dev/null | head -1 || true)
 
 # Auto-detect approved plan
 HAS_APPROVED_PLAN=false
@@ -193,6 +273,9 @@ if [[ "$PLAN_MODE" == false ]] && [[ "$REVIEW_LEVEL" == "Full" ]] && [[ "$HAS_AP
 fi
 
 echo "Spec:  $SPEC_FILE"
+if [[ -n "$PHASE" ]]; then
+  echo "Phase: ${PHASE} of ${SPEC_PHASES} (${FULL_SPEC_FILE}, sliced)"
+fi
 echo "Tool:  $TOOL [$TOOL_SOURCE]${MODEL:+ (model: $MODEL)}"
 if [[ -n "$REVIEW_LEVEL" ]]; then
   echo "Review Level: $REVIEW_LEVEL"
@@ -201,6 +284,31 @@ if [[ "$HAS_APPROVED_PLAN" == true ]] && [[ "$PLAN_MODE" == false ]]; then
   echo "Plan:  $APPROVED_PLAN_FILE (auto-detected)"
 fi
 echo ""
+
+# Preflight: e.g. the dev stack is up. Fails before the implementor starts, so it never has to guess.
+if [[ "$PLAN_MODE" == false ]] && [[ -n "$PREFLIGHT_CMD" ]] && [[ "$SKIP_PREFLIGHT" == false ]]; then
+  echo "Preflight: $PREFLIGHT_CMD"
+  if ! bash -c "$PREFLIGHT_CMD" >/dev/null 2>&1; then
+    echo "Error: preflight failed."
+    [[ -n "$PREFLIGHT_HELP" ]] && echo "  $PREFLIGHT_HELP"
+    echo "  (pass --skip-preflight to run anyway)"
+    exit 1
+  fi
+  echo ""
+fi
+
+# Notes appended to the implementor's prompt.
+PHASE_NOTE=""
+if [[ -n "$PHASE" ]]; then
+  PHASE_NOTE=" This is phase ${PHASE} of ${BASE_ID}. The spec file you were given contains only this phase; implement phase ${PHASE} only, and do not start, prepare or partially implement any other phase. Use ${SPEC_ID} wherever AGENT.md says F[N]. When phase ${PHASE} is done, STOP; do not continue."
+fi
+PREFLIGHT_NOTE=""
+if [[ -n "$PREFLIGHT_CMD" ]]; then
+  PREFLIGHT_NOTE=" Before your final test run, run the preflight check '${PREFLIGHT_CMD}'; if it fails, stop and tell the user${PREFLIGHT_HELP:+ (${PREFLIGHT_HELP})}. Never skip or deselect tests to get around it."
+fi
+REPORT_NOTE=" End your final message with the End-of-Run Report in the exact format defined in AGENT.md, including the exact next steps for the user."
+SUFFIX="${PHASE_NOTE}${PREFLIGHT_NOTE}${REPORT_NOTE}"
+PLAN_SUFFIX="${PHASE_NOTE}"
 
 # Capture test baseline before implementation begins (skip during plan-only mode)
 # --if-stale skips the re-run when the saved result is still fresh (e.g. immediately after a
@@ -235,11 +343,11 @@ case "$TOOL" in
     fi
 
     if [[ "$PLAN_MODE" == true ]]; then
-      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary."
+      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary.${PLAN_SUFFIX}"
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
-      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
+      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     else
-      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
+      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     fi
     echo "Running: codex (interactive)${MODEL:+ (model: $MODEL)}"
     echo "NOTE: Codex will process the initial message then stay interactive."
@@ -251,11 +359,11 @@ case "$TOOL" in
   gemini)
     # AGENT.md and CODING.md are auto-loaded via .gemini/settings.json
     if [[ "$PLAN_MODE" == true ]]; then
-      PROMPT="Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and wait for my approval. Type \"approved\" to proceed with implementation."
+      PROMPT="Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and wait for my approval. Type \"approved\" to proceed with implementation.${PLAN_SUFFIX}"
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
-      PROMPT="The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
+      PROMPT="The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     else
-      PROMPT="Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
+      PROMPT="Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     fi
     echo "Running: gemini \"$PROMPT\""
     echo ""
@@ -349,11 +457,11 @@ case "$TOOL" in
     # AGENT.md and CODING.md are loaded via the prompt; the agent reads them itself.
     CONTEXT_PREFIX="Read AGENT.md and CODING.md in full before making any changes. "
     if [[ "$PLAN_MODE" == true ]]; then
-      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and stop."
+      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and stop.${PLAN_SUFFIX}"
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
-      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
+      PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     else
-      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done."
+      PROMPT="${CONTEXT_PREFIX}Implement $SPEC_FILE. Maintain $PROGRESS_FILE throughout: append a progress entry after completing each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     fi
     echo "Running: claude (new subprocess — isolated context)"
     echo ""
