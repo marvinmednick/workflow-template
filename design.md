@@ -156,15 +156,26 @@ Glossary: [authoritative load-bearing vocabulary — one line per term]
 
 ## Legacy Parity Matrix
 <!-- Include when the feature rebuilds screens or functions of an existing system. -->
-| Legacy screen or function (with source path) | Decision: kept / changed / dropped | Reason (required for changed or dropped: what in the new system cannot behave the same way) |
+| Legacy screen or function (with source path) | Decision: kept / forced change / dropped | Reason (required for forced change or dropped: what in the new system cannot behave the same way) |
 |---|---|---|
+
+## Suggested Changes
+<!-- Improvements to legacy behaviour that are not forced. Each is discussed with the user on its own. -->
+| # | Suggestion | Benefit and cost | Status (proposed / approved / rejected) |
+|---|---|---|---|
 ```
 
-**Legacy parity.** When a feature rebuilds an existing system's screens or functions, functionality
-follows the existing behaviour and layout unless something underlying prevents it. Read the existing
-code and the running system (not summaries), list every screen and function in scope in the parity matrix,
-and put each deviation to the user as its own question with its reason — never fold a deviation into a
-paragraph or a list of other decisions. Anything not listed is kept as it is.
+**Legacy parity.** When a feature rebuilds an existing system's screens or functions, the baseline is
+the existing behaviour and layout. Read the existing code and the running system (not summaries) and
+list every screen and function in scope in the parity matrix.
+
+- A **forced change** or a **drop** needs a reason: something in the new system cannot behave the same
+  way. Put each to the user as its own question, never inside a paragraph or a list of other decisions.
+- A **suggested change** is an improvement the new system could make on purpose. Collect them in the
+  Suggested Changes table while drawing up the matrix, propose each with its benefit and cost, and record
+  the user's answer. Only approved suggestions are built.
+- Anything not in either table is kept as it is. A difference from the legacy behaviour that is in
+  neither the forced-change rows nor an approved suggestion is a defect, not a design choice.
 
 ### Step 6 — Update PLAN.md and UI Guidelines
 
