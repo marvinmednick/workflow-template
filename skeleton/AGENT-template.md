@@ -297,6 +297,11 @@ difference from legacy, with its explanation, under Deviations.
 ## Tests Before Reporting
 
 Run the full `TEST_CMD` once. If the run needs something running (a stack, a browser), check it first
-with the preflight command the run prompt names; if it fails, **stop and tell the user what to start**
-— never skip, deselect or mark tests to get around it. Suites that cannot run belong under "Suites not
-run, and why" and make the result `BLOCKED`, not `COMPLETE`.
+with the preflight command the run prompt names. **A failed connection or permission error may be your
+sandbox, not the service** (localhost is often blocked): before concluding anything is down, request
+elevated execution for that same command and retry once. Only if the retry also fails, or the request is
+refused, **stop and tell the user what to start** — never skip, deselect or mark tests to get around it.
+Suites that cannot run belong under "Suites not run, and why" and make the result `BLOCKED`, not
+`COMPLETE`. Where the project provides wrapper scripts for tests, preflight or tools (a `scripts/`
+directory named in `AGENT.md`), use them instead of composing your own command lines: a wrapper is one
+stable command the user can approve once, while a new compound command asks for approval every time.

@@ -5,6 +5,30 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v20 (2026-09-24)
+
+### Summary
+
+An implementor stopped at a failed preflight because its sandbox blocked a localhost call, which looked
+the same as a stack that was down; the template wording told it to stop. Separately, compound test
+commands produced one-off approval rules that never matched again, so testing kept asking for approval.
+
+### What changed
+
+- **`scripts/implement`** — The run prompt now tells the implementor to request elevated execution and
+  retry the preflight once before concluding the stack is down.
+- **`skeleton/AGENT-template.md`** — "Tests Before Reporting": the same escalate-once rule, and use the
+  project's wrapper scripts (a stable command approved once) instead of composing command lines.
+
+### What existing projects need to do
+
+Prompt changes are live. In `AGENT.md`, replace the "Tests Before Reporting" paragraph with the new one.
+Optionally add a `scripts/` directory with wrappers (`test`, `check`, `preflight`) that set up the
+environment, point `TEST_CMD` and `PREFLIGHT_CMD` at them, and add prefix approvals for them to the
+implementor tool's rules. Set `.workflow-version` to 20.
+
+---
+
 ## v19 (2026-09-24)
 
 ### Summary

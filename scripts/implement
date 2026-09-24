@@ -304,7 +304,7 @@ if [[ -n "$PHASE" ]]; then
 fi
 PREFLIGHT_NOTE=""
 if [[ -n "$PREFLIGHT_CMD" ]]; then
-  PREFLIGHT_NOTE=" Before your final test run, run the preflight check '${PREFLIGHT_CMD}'; if it fails, stop and tell the user${PREFLIGHT_HELP:+ (${PREFLIGHT_HELP})}. Never skip or deselect tests to get around it."
+  PREFLIGHT_NOTE=" Before your final test run, run the preflight check '${PREFLIGHT_CMD}'. If it fails, it may be your sandbox blocking a local connection, not the service: request elevated execution for that same command and retry once. Only if the retry also fails or is refused, stop and tell the user${PREFLIGHT_HELP:+ (${PREFLIGHT_HELP})}. Never skip or deselect tests to get around it."
 fi
 REPORT_NOTE=" End your final message with the End-of-Run Report in the exact format defined in AGENT.md, including the exact next steps for the user."
 SUFFIX="${PHASE_NOTE}${PREFLIGHT_NOTE}${REPORT_NOTE}"
