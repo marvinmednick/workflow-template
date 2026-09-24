@@ -2,7 +2,16 @@ Implement the spec: $ARGUMENTS
 
 ## Step 0 — Parse and validate
 
-Identify the spec ID from $ARGUMENTS (e.g. `F1`, `I4`).
+Identify the spec ID from $ARGUMENTS (e.g. `F1`, `I4`, or `F4.2` for phase 2 of a phased feature).
+
+**Phased features.** If the ID is `F[N].[P]`, the spec file is found by the base ID (`F[N]`), the
+implementor is given only the shared sections plus `## Phase [P]` (write the slice with the same `awk`
+that `./implement` uses, or simply run `./implement F[N].[P]`), and every artifact name uses the full
+ID: `plans/F[N].[P]-plan-approved.md`, `-progress.md`, `-review.md`. Refuse if the spec's header has
+`**Phases:** N` and the ID has no phase, if the phase's detail is `<!-- detail: pending -->`, or if
+phase P-1 is not closed (ledger `Status: Passed` and a `Phase P-1 closed` entry in `plans/F[N]-log.md`).
+Add to the agent prompt: "Implement phase [P] only; stop when it is done and end with the
+End-of-Run Report from AGENT.md."
 
 Find the spec file:
 ```bash
@@ -74,6 +83,8 @@ When every plan item is complete AND no finding reads `Open`/`Reopened`:
   do not run the full suite again — a redundant second full run is not required.
 - Clear the "Before Reporting Done" self-check in AGENT.md: reconcile the progress bookmark so no stale
   trailing entry survives, confirm `git status` matches what you'll report, no open findings, tests pass.
+
+End with the End-of-Run Report defined in AGENT.md (it replaces the list below when both apply).
 
 Report back:
 - Every file modified or created

@@ -1,5 +1,35 @@
 Complete and ship a feature or non-feature issue. Input ($ARGUMENTS) is a feature ID (F1) or GitHub issue number (42).
 
+## Phase close — `/complete F[N].[P]`
+
+For a phase of a phased feature (see "Phased Features" in WORKFLOW.md). It closes the phase, not the
+issue.
+
+1. **Verify.** `plans/F[N].[P]-review.md` reads `Status: Passed`; `plans/F[N].[P]-progress.md` exists and
+   its last entry is a reconciling one; the full test suite passes (run it if `./check-tests --if-stale`
+   says the saved result is stale; the preflight from `.implement.conf` must be satisfied, never skip
+   tests).
+2. **Commit** the phase (stage specific files, including the phase's plan, progress and ledger):
+   `feat(F[N].[P]): <what the phase delivered>` with `refs #[N]` in the body. Ask the user to confirm the
+   message and file list first.
+3. **Apply the ledger's Doc Updates** (as in Step 3.5 below), set the ledger `Doc Updates: Done`, and
+   commit them: `docs: ... for F[N].[P]`.
+4. **Log.** Append `## [DATE] — Phase [P] closed` to `plans/F[N]-log.md` with the commit, the test count
+   and any manual verification the user did. `./implement` keys its entry check on this exact wording.
+5. **PLAN.md.** Set the feature's status to `In Progress (phase [P]/[T] closed)`; when phase [T] closes set
+   it to `In Review`.
+6. **Refresh the next phase.** Compare the as-built code and this phase's findings with the design doc
+   and the spec's later phases: update the design's Revision History and any parity matrix; correct the
+   coarse tier of later phases; then tell the user the next step: `/spec F[N].[P+1]` (the detail tier),
+   or `/complete F[N]` if this was the last phase.
+7. **Report** the unpushed commit count. Do not close the issue, triage the backlog or push.
+
+## Feature close — `/complete F[N]` on a phased feature
+
+Require every phase to be closed (a `Phase k closed` entry for each phase in `plans/F[N]-log.md`).
+Then run Steps 1 and 3 to 5 below; Step 2 (commit) applies only if the tree has uncommitted changes, and
+Step 3.5 only for doc updates not already applied at phase closes.
+
 ## Setup
 
 Determine the type from $ARGUMENTS:

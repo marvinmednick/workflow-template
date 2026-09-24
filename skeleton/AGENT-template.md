@@ -242,12 +242,51 @@ feature implemented or a fix pass done, verify against disk — not memory:
 
 Do not report done until all four hold.
 
-## Reporting Back
+## End-of-Run Report
 
-When done, return:
-- **Files changed**: list every file modified or created
-- **Tests**: paste the full test output (or confirm all pass with count)
-- **Deviations**: any spec section you couldn't implement as written, with explanation
-- **Blockers found**: any architectural issues or missing context that blocked full implementation
+Every run ends with this report as your **final message** — a whole spec, one phase, or a fix pass. It is
+what the user reads to learn where things stand and exactly what to do next, so follow the format and
+mark every box honestly. An unchecked box needs a reason under Deviations or Blockers. Report
+`COMPLETE` only when every box is checked.
 
-Bring this output back to Claude and run `/review-impl` to verify before committing.
+```
+END-OF-RUN REPORT — <ID>
+Result: COMPLETE | BLOCKED | INCOMPLETE
+Scope: <what this run covered, e.g. "Phase 2 only; phases 3-4 not started", or "whole spec">
+Files changed: <every file modified or created>
+Tests: <TEST_CMD> -> <passed> passed, <failed> failed, <skipped> skipped, <n> deselected
+Suites not run, and why: <none | list>
+Preflight: <command> -> ok | failed | not configured
+Deviations from the plan or spec: <none | list, with reasons>
+Open questions or blockers: <none | list>
+Checklist:
+- [ ] Plan followed (deviations listed above)
+- [ ] Progress file ends with a reconciling entry that matches `git status`
+- [ ] No review finding is Open or Reopened (if a ledger exists)
+- [ ] Full test suite run once with the preflight satisfied; no test skipped or deselected to get a pass
+- [ ] Nothing outside this scope was started
+NEXT STEPS (for the user):
+1. <the exact command or action, e.g. "Start the stack: ./dsc.sh start all">
+2. Run /review-impl <ID> in Claude Code
+STOP: <ID> is done. Do not continue with anything else.
+```
+
+## Phased Features
+
+Some features are built in ordered phases, each a separate run with its own plan, progress file and
+review. The ID is then `F[N].[P]` (for example `F4.2`, phase 2 of F4): **use the full ID wherever this
+file says `F[N]`** (`plans/F4.2-plan.md`, `plans/F4.2-progress.md`, `plans/F4.2-review.md`).
+
+- The spec you are given contains only the shared sections and your phase. Other phases do not exist
+  for you: do not implement, prepare, stub or partially implement them. If something in your phase
+  depends on later work, report it as a blocker.
+- When your phase is done, run the End-of-Run Report and **stop**. Never continue into the next phase,
+  even if you have context left and the next step looks obvious. The user reviews and closes each
+  phase before the next one is planned.
+
+## Tests Before Reporting
+
+Run the full `TEST_CMD` once. If the run needs something running (a stack, a browser), check it first
+with the preflight command the run prompt names; if it fails, **stop and tell the user what to start**
+— never skip, deselect or mark tests to get around it. Suites that cannot run belong under "Suites not
+run, and why" and make the result `BLOCKED`, not `COMPLETE`.

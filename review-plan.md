@@ -4,6 +4,12 @@ approved, written out as `plans/$ARGUMENTS-plan-approved.md` for the implementor
 
 ## Setup
 
+**Phased features.** If $ARGUMENTS is `F[N].[P]` (phase P of F[N]): find the spec by the base ID
+(`specs/F[N]-*.md`) and review the plan against the shared sections plus `## Phase [P]` only; the plan
+and approved-plan files use the full ID (`plans/F[N].[P]-plan.md`, `plans/F[N].[P]-plan-approved.md`).
+Check that the plan does not reach into other phases. In the rest of this file, `$ARGUMENTS` means
+the full ID for file names and the base ID for the spec.
+
 1. Glob `specs/$ARGUMENTS-*.md` to find the spec file
 2. Read `plans/$ARGUMENTS-plan.md` (the implementor's draft) — **do not modify this file**
 3. Read the spec in full before reviewing

@@ -5,6 +5,54 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v18 (2026-09-24)
+
+### Summary
+
+A large feature (F4 in the daystrom-patent-analysis project) was specced as one document with four
+"phases" and a line saying "stop at each gate". `./implement` had no idea what a phase was, so the
+implementor built all four in one run, then ended with a bare file list and test output. The user could
+not tell which phase they were at, what to do next, or whether the process had been followed. The
+integration and browser tests were also left out of the default test run. This version makes phases a
+first-class part of the workflow.
+
+### Changes
+
+- **`scripts/implement`** — Accepts a phase ID (`F4.2`, phase 2 of F4). A spec with `**Phases:** N` in
+  its header must be run one phase at a time (`./implement F4` on it is an error); the implementor is
+  given a slice of the spec (shared sections plus `## Phase N`) written to `.implement-cache/`, so later
+  phases are not visible to it. Plan, progress and ledger files are per phase (`plans/F4.2-*`).
+  New checks before a run: the phase's detail must not be `<!-- detail: pending -->`; phase N-1 must be
+  closed (its ledger `Status: Passed` and a `Phase N-1 closed` line in `plans/F4-log.md`; override with
+  `--skip-entry-check`); and an optional `PREFLIGHT_CMD` (with `PREFLIGHT_HELP`) in `.implement.conf` must
+  succeed (override with `--skip-preflight`). Every implementor prompt now ends by requiring the
+  End-of-Run Report, and phase runs say to stop after the phase. Specs without `**Phases:**` behave exactly as before.
+- **`spec.md`** — Phased-spec format (one file, two tiers: shared sections plus `## Phase N` sections;
+  phase 1 detailed, later phases coarse with `<!-- detail: pending -->`) and detail mode `/spec F4.N`.
+- **`implement.md`, `review-plan.md`, `review.md`** — Phase IDs: per-phase artifacts, phase-scoped review.
+- **`complete.md`** — `/complete F4.N` closes a phase (verify, commit, doc updates, `Phase N closed` log
+  entry, `PLAN.md` phase status, refresh of the next phase); `/complete F4` closes the issue only when every
+  phase is closed.
+- **`design.md`** — Optional `## Phases` and `## Legacy Parity Matrix` sections, and the rule that a
+  feature rebuilding an existing system follows its behaviour unless something underlying prevents it,
+  with each deviation put to the user as its own question.
+- **`skeleton/AGENT-template.md`** — New sections: End-of-Run Report (a fixed format with a checklist and
+  exact next steps for the user), Phased Features, Tests Before Reporting (preflight; never skip tests).
+  The old "Reporting Back" section is replaced.
+- **`skeleton/WORKFLOW-template.md`** — New "Phased Features" section.
+
+### What existing projects need to do
+
+Script and command changes are symlinked and take effect immediately; nothing changes for specs without
+`**Phases:**`. To use phases and the report format:
+1. Merge the three new `AGENT-template.md` sections into your `AGENT.md` (replace "Reporting Back") and
+   the "Phased Features" section into `WORKFLOW.md`.
+2. Add `.implement-cache/` to `.gitignore`.
+3. Optionally set `PREFLIGHT_CMD` and `PREFLIGHT_HELP` in `.implement.conf`.
+4. Update `.workflow-version` to 18.
+
+---
+
 ## v17 (2026-09-18)
 
 ### Summary

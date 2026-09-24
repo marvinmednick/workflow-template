@@ -310,3 +310,40 @@ All workflow commands are available in both **Claude Code** and **Codex CLI**:
 | `docs/design-history.md` | Understanding why a design decision was made |
 | `specs/F[N]-*.md` | Implementing or reviewing a specific feature |
 | `DESIGN.md` | Understanding full system architecture before designing a feature |
+
+---
+
+## Phased Features
+
+A large feature can be built in ordered phases, with a review and a decision point between them. Use
+phases when a feature has three or more steps that can each be checked on their own, or whose later
+steps depend on how the earlier ones turned out.
+
+**Notation.** `F4.2` is phase 2 of F4. The design doc, spec file, GitHub issue, `PLAN.md` row and
+`plans/F4-log.md` belong to `F4`. The plan, progress file and review ledger belong to the phase
+(`plans/F4.2-plan.md`, `-plan-approved.md`, `-progress.md`, `-review.md`).
+
+**The spec is one file with two tiers.** The header has `**Phases:** N`. Shared sections (context,
+conventions, doc updates, what not to change) come first; each phase is a `## Phase N — Title` section.
+Phase 1 is fully detailed when the spec is written. Later phases carry only their goal, entry and exit
+criteria, and any parity rows, and are marked `<!-- detail: pending -->`. Their file lists and tests are
+written at the start of the phase, from the code as built (`/spec F4.N`). `./implement` refuses a phase
+whose detail is pending.
+
+**The loop for each phase P:**
+
+| Step | Command | Result |
+|---|---|---|
+| Write the detail (P > 1) | `/spec F4.P` | Phase section filled in; earlier phases' lessons applied |
+| Plan | `./implement F4.P --plan`, then `/review-plan F4.P` | `plans/F4.P-plan-approved.md` |
+| Implement | `./implement F4.P` | Code, progress file, end-of-run report with the user's next steps |
+| Review | `/review-impl F4.P` | `plans/F4.P-review.md` ledger; fix loop until Passed |
+| Close | `/complete F4.P` | Commit, `Phase P closed` log entry, doc updates, refresh of phase P+1 |
+
+`./implement F4.P` (P > 1) refuses to start unless `plans/F4.(P-1)-review.md` reads `Status: Passed` and
+`plans/F4-log.md` has a `Phase P-1 closed` entry. `./implement F4` on a phased feature is an error.
+`/complete F4` closes the issue once every phase is closed.
+
+**`.implement.conf`** may set `PREFLIGHT_CMD` (for example a health check on the dev stack) and
+`PREFLIGHT_HELP`. `./implement` runs the preflight before the implementor starts and tells the
+implementor to run it again before its final test run.

@@ -148,7 +148,23 @@ Glossary: [authoritative load-bearing vocabulary — one line per term]
 
 ## Open Questions
 [Anything still unresolved. Should be empty before handing to /spec — if not, note what needs resolution.]
+
+## Phases
+<!-- Include for a feature to be built in ordered phases. -->
+| Phase | Content | Gate (what must be true before the next phase) |
+|---|---|---|
+
+## Legacy Parity Matrix
+<!-- Include when the feature rebuilds screens or functions of an existing system. -->
+| Legacy screen or function (with source path) | Decision: kept / changed / dropped | Reason (required for changed or dropped: what in the new system cannot behave the same way) |
+|---|---|---|
 ```
+
+**Legacy parity.** When a feature rebuilds an existing system's screens or functions, functionality
+follows the existing behaviour and layout unless something underlying prevents it. Read the existing
+code and the running system (not summaries), list every screen and function in scope in the parity matrix,
+and put each deviation to the user as its own question with its reason — never fold a deviation into a
+paragraph or a list of other decisions. Anything not listed is kept as it is.
 
 ### Step 6 — Update PLAN.md and UI Guidelines
 

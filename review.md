@@ -2,6 +2,15 @@ Review the code changes described or shown (use recent git diff if no specific c
 
 ## Step 0 — Determine Review Path
 
+**Phased features.** If $ARGUMENTS is `F[N].[P]` (phase P of F[N]): use the full ID for the progress
+file and ledger (`plans/F[N].[P]-progress.md`, `plans/F[N].[P]-review.md`; finding IDs `F[N].[P]-1`, …);
+review against the shared spec sections plus `## Phase [P]`. Phases are committed when they close, so
+the phase's work is the uncommitted tree (`git status`, `git diff HEAD`). Look at every changed file
+for scope: work belonging to another phase is a finding. Feature-level tracking is unchanged: the
+`plans/F[N]-log.md` entry says "Phase [P] review round k"; the GitHub comment names the phase; do not
+change the `PLAN.md` status at a phase review (the phase close does). `Passed` on a phase ledger does
+not close the issue.
+
 The **working tree is what you review** — `git diff` and the actual file contents, not the progress
 file's self-report. `plans/[ID]-progress.md` is a *hint* to orient you, never the authority on what is
 done (it can go stale under context compaction).

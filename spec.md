@@ -4,6 +4,33 @@ Read the relevant sections of DESIGN.md, docs/design/ui-guidelines.md (if presen
 
 ---
 
+## Phased features
+
+Use phases when the feature has three or more steps that can each be checked on their own, or whose
+later steps depend on how earlier ones turn out (see "Phased Features" in WORKFLOW.md). Write **one**
+spec file:
+
+- Header: `**Review Level:** Full` and `**Phases:** N`.
+- Shared sections first: Context, conventions, reference assets, Deferred Items, Doc Updates, What the
+  Implementor Should NOT Change.
+- Then one `## Phase N — Title` section per phase. Each contains: `### Goal`, `### Entry criteria`
+  (which earlier phases must be closed and what must be true), `### Acceptance Criteria` (the exit
+  criteria), and, once detailed: `### Files to Modify`, `### New Files`, `### Database / Schema
+  Changes`, `### Tests to Write`, `### Manual verification (user)`, `### Gate`.
+- **Phase 1 is fully detailed. Later phases carry only Goal, Entry criteria, Acceptance Criteria and
+  any parity rows, and the marker `<!-- detail: pending -->` right under the heading.** Detail written
+  now for code that does not exist yet goes stale.
+
+**Detail mode — `/spec F[N].[P]`.** Used at the start of phase P (P > 1) after phase P-1 is closed.
+Read the design doc, the whole spec, `plans/F[N]-log.md`, the closed phases' ledgers and progress files,
+and the code as built. Edit **only** the `## Phase P` section: fill in the detail tier, replace the
+marker with `<!-- detail: written [DATE] -->`, and correct its Goal and Acceptance Criteria if the
+earlier phases changed the picture. If earlier phases changed anything the shared sections or later
+phases rely on, list the changes to make and make them with the user's agreement. Then suggest
+`./implement F[N].[P] --plan`.
+
+---
+
 ## Step 0: Design Doc Check
 
 Before assigning an F-number or writing anything, check for an existing design doc.
