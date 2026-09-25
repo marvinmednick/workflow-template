@@ -103,14 +103,24 @@ or softened assertion, a skipped test, or code that only makes a measurement agr
 that shift boxes to measured coordinates). Also look at the real output (screenshots, reports), not only the
 numbers: a check that passes while the result looks wrong is a finding.
 
+**Gate first.** Where the project has a legacy-comparison gate command, run it before reading the code and
+record its per-screen counts in the ledger's round line. A non-zero exit is a blocking finding on its own;
+the implementor's paste is never a substitute for your run.
+
 **Legacy parity check** (when the design doc has a Legacy Parity Matrix)
 
 For the screens in scope, compare the implementation with the legacy system (its running instance and
 source, or the comparison harness report if the project has one), not with the spec's description. Every
 difference must be a forced change, a drop or an approved suggestion in the design doc; any other
-difference is a **blocking** finding (a defect, whatever its merit). Check also that nothing was added that
-legacy does not have, and that each state in the matrix was compared. Record the verdict under the
-Implementation heading of the ledger.
+difference is a **defect, whatever its merit**. Grade defects by what a user sees:
+- **blocking**: visible at a glance (a missing or wrong element, text, colour, weight, size, alignment,
+  spacing that changes the layout), or any weakening of a check;
+- **non-blocking polish**: differences of a few pixels in spacing or size that nobody would notice side by
+  side. Record all polish for a screen in **one grouped finding** (a list, with measured values) instead of
+  one finding each, so it is fixed in one pass at the end; it still ends the feature `Verified` or
+  `Deferred` like any non-blocking finding.
+Check also that nothing was added that legacy does not have, and that each state in the matrix was
+compared. Record the verdict under the Implementation heading of the ledger.
 
 ---
 

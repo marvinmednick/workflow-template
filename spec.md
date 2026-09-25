@@ -36,7 +36,10 @@ suggestions. Do not invent or improve UI, texts, layout or behaviour the legacy 
 gap appears (a state the matrix does not cover, something the legacy source does not settle), read the
 running system or its source; if that does not answer it, stop and put it to the user as its own question,
 as a new forced change or suggestion. The spec's acceptance criteria for a screen say "no unexplained
-difference from legacy", not a description of how it should look.
+difference from legacy", not a description of how it should look. Name the project's gate command in the
+spec's checks (the one command that captures, compares and exits non-zero on any unexplained difference)
+and make its passing run, pasted into the End-of-Run Report, an acceptance criterion of every phase that
+has screens.
 
 ---
 

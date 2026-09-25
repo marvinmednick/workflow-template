@@ -182,6 +182,15 @@ list every screen and function in scope in the parity matrix.
   geometry and text, and reports differences ranked, with an explained-differences file whose entries cite a
   matrix row or an approved suggestion. Pixel diffs and committed baseline screenshots are optional and
   usually not worth their noise. If the implementor is expected to read screenshots, test that it can.
+- **Coverage comes from the harness, not from hand-picked points.** Named measure points are only a
+  starting set. The harness also walks every visible element of each captured state, pairs elements across
+  the two systems (by role, text and position in the tree) and compares their styles and boxes; an element
+  present on one side only is reported. A point list alone leaves blind spots that the reviewer finds by
+  eye, one round at a time.
+- **One gate command.** The harness has a single command (for example `scripts/ui-compare gate <ID>`) that
+  runs the project checks, captures both sides in every theme and state, compares, lists the side-by-side
+  images and exits non-zero on any unexplained difference. The implementor may not report a phase done
+  without a passing run of it, and the reviewer runs the same command first.
 
 ### Step 6 — Update PLAN.md and UI Guidelines
 

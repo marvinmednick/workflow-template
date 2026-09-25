@@ -5,6 +5,34 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v22 (2026-09-25)
+
+### Summary
+
+A legacy-parity phase took five review rounds. The implementor stopped short of the comparison gate and left
+the reviewer to iterate; hand-picked measure points left blind spots that were only found by eye; and every
+difference, however small, blocked the phase.
+
+### What changed
+
+- **`design.md`** — Legacy parity: the harness gets full coverage from an element walk (not only named
+  points) and one gate command that captures, compares and exits non-zero on any unexplained difference.
+- **`spec.md`** — Names the gate command in the checks and makes its passing run an acceptance criterion of
+  every phase with screens.
+- **`skeleton/AGENT-template.md`** — Legacy Parity: run the gate after each group of changes, do not report
+  done until it exits zero, paste its output, look at every side-by-side image. New "Look first, then measure" paragraph: work in small groups, view the side-by-side after each, write one line on what still differs, fix visible differences before reading the numbers, copy values from the spec's legacy reference file.
+- **`review.md`** — "Gate first" step (run it, record counts); defects graded blocking (visible at a glance,
+  or a weakened check) versus non-blocking polish grouped in one finding per screen.
+- **`review-plan.md`** — "Gate and coverage" checklist item.
+
+### What existing projects need to do
+
+Command changes are live. In a project with a legacy comparison harness: add the gate command and the
+element walk to the harness (via a spec or plan), name the gate in `AGENT.md`, and set `.workflow-version` to 22.
+Add the "Look first, then measure" paragraph and the sentence about the gate command from `AGENT-template.md` (Legacy Parity) to `AGENT.md`.
+
+---
+
 ## v21 (2026-09-25)
 
 ### Summary
