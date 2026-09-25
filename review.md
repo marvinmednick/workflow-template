@@ -94,6 +94,15 @@ Read `REVIEW.md` in the project root. For each checklist item listed there, eval
 
 If no `REVIEW.md` exists, note this and review for general correctness only (no project-specific patterns to check).
 
+**Checks diff** (every review)
+
+Diff the tests, measurement or comparison tools and expected-difference files (`git diff` on those paths)
+against what the spec and plan allow. Any weakening is a **blocking** finding unless the spec names it: a
+value rewritten or special-cased for one side, a loosened tolerance, a new or widened acceptance, a removed
+or softened assertion, a skipped test, or code that only makes a measurement agree (for example CSS transforms
+that shift boxes to measured coordinates). Also look at the real output (screenshots, reports), not only the
+numbers: a check that passes while the result looks wrong is a finding.
+
 **Legacy parity check** (when the design doc has a Legacy Parity Matrix)
 
 For the screens in scope, compare the implementation with the legacy system (its running instance and

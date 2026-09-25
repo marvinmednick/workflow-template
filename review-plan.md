@@ -33,6 +33,11 @@ Check the plan against the spec for each item:
 - Every difference from legacy the plan introduces is a listed forced change, a drop, or an approved
   suggestion; anything else is a finding
 
+**Checks** (tests, measurement or comparison tools, expected-difference lists, thresholds)
+- Every change to a test, harness or expectation file is listed in the plan by file and is justified by the
+  spec; an unlisted change, or one that loosens a check, is a finding
+- The plan does not give the implementor a way to make a check pass by editing the check
+
 **Precision**
 - UI element additions state: what the element is, where it appears in the layout (position
   relative to siblings), and what triggers it — not just that it exists

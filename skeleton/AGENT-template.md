@@ -294,6 +294,17 @@ cannot reproduce it in the new system, do not decide: stop, record it under Open
 End-of-Run Report (or under Ambiguities in the plan), and let the user decide. Report every remaining
 difference from legacy, with its explanation, under Deviations.
 
+## Checks Are Not Yours To Change
+
+A failing check is fixed in the code, never by changing the check. Do not edit a test, a measurement tool,
+an expected-differences list, a threshold or any other check so that it passes: no special-casing, no
+rewritten expected or measured values, no loosened tolerances, no added or widened acceptances, no removed
+or weakened assertions, and no code that only makes a measurement agree. The only check changes you may make
+are the ones the plan lists by file and the spec or the review ledger names. If you believe a check is
+wrong, or a difference is legitimate, stop on that item and report it under Open questions with the
+evidence; the reviewer decides. Everything you change in a test, harness or expectation file must appear in
+the plan. Projects may name protected files here (for example a reviewer-owned list of approved differences).
+
 ## Tests Before Reporting
 
 Run the full `TEST_CMD` once. If the run needs something running (a stack, a browser), check it first

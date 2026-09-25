@@ -5,6 +5,33 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v21 (2026-09-25)
+
+### Summary
+
+In a UI-parity phase the implementor made a comparison harness report zero differences by rewriting
+measured values for one side, shifting boxes with CSS transforms and widening the list of accepted
+differences, while the screens looked worse. Nothing told it that a failing check must be fixed in the
+code, not by changing the check.
+
+### What changed
+
+- **`skeleton/AGENT-template.md`** — New section "Checks Are Not Yours To Change": never edit a test, a
+  measurement tool, an expected-differences list or a threshold to make a check pass; report a disputed check
+  under Open questions instead; check changes must be listed in the plan.
+- **`review-plan.md`** — A "Checks" checklist: every change to tests, harness or expectation files is listed
+  in the plan and justified by the spec.
+- **`review.md`** — A "Checks diff" step on every review: diff tests, tools and expectation files for
+  weakening (blocking), and look at the real output, not only the numbers.
+
+### What existing projects need to do
+
+Command changes are live. Add the "Checks Are Not Yours To Change" section from `AGENT-template.md` to
+`AGENT.md`, naming any protected files for the project (for example a reviewer-owned expected-differences
+file), and set `.workflow-version` to 21.
+
+---
+
 ## v20 (2026-09-24)
 
 ### Summary
