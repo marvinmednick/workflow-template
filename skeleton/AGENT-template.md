@@ -295,7 +295,9 @@ End-of-Run Report (or under Ambiguities in the plan), and let the user decide. R
 difference from legacy, with its explanation, under Deviations. Where the project has a gate command for
 legacy comparison (named in `AGENT.md` and the spec), run it after every group of changes; do not report a
 phase done until it exits zero, paste its final output in the End-of-Run Report, and look at every
-side-by-side image it lists (a passing gate is necessary, not sufficient).
+side-by-side image it lists (a passing gate is necessary, not sufficient). The gate fails only on checks,
+captures and the hack scan; the measured differences it prints are advisory. **You own "looks right":**
+write, capture, look, fix. Differences of a few pixels are not defects and are not chased.
 
 **Look first, then measure.** Work in small groups (one element or one region). After each group, capture,
 open the side-by-side image of the affected state with the image viewer, and write one line in the

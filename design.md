@@ -176,21 +176,26 @@ list every screen and function in scope in the parity matrix.
   the user's answer. Only approved suggestions are built.
 - Anything not in either table is kept as it is. A difference from the legacy behaviour that is in
   neither the forced-change rows nor an approved suggestion is a defect, not a design choice.
-- **Screens are checked by measurement, not by eye.** When the legacy system can be run, plan a first phase
-  that builds a comparison harness: it logs in read-only, captures each screen in each state listed in the
-  matrix (fixed viewport, animations off, explicit ready condition; freeze the clock only if displayed dates change the layout), records computed styles,
-  geometry and text, and reports differences ranked, with an explained-differences file whose entries cite a
-  matrix row or an approved suggestion. Pixel diffs and committed baseline screenshots are optional and
-  usually not worth their noise. If the implementor is expected to read screenshots, test that it can.
-- **Coverage comes from the harness, not from hand-picked points.** Named measure points are only a
-  starting set. The harness also walks every visible element of each captured state, pairs elements across
-  the two systems (by role, text and position in the tree) and compares their styles and boxes; an element
-  present on one side only is reported. A point list alone leaves blind spots that the reviewer finds by
-  eye, one round at a time.
-- **One gate command.** The harness has a single command (for example `scripts/ui-compare gate <ID>`) that
-  runs the project checks, captures both sides in every theme and state, compares, lists the side-by-side
-  images and exits non-zero on any unexplained difference. The implementor may not report a phase done
-  without a passing run of it, and the reviewer runs the same command first.
+- **Choose the parity level.** Decide with the user how close "legacy parity" is: (a) pixel-close, or (b)
+  function, texts, elements and brand feel, with sizes and spacing from one shared component set of the
+  new app. Prefer (b) once the first screens exist: pixel matching multiplies one-off styling that must be
+  undone when the design system is consolidated. Record the level in the design doc.
+- **The user's look is the acceptance; the harness finds candidates.** When the legacy system can be run,
+  plan a first phase that builds a comparison harness: it logs in read-only, captures each screen in each
+  state listed in the matrix (fixed viewport, animations off, explicit ready condition; freeze the clock
+  only if displayed dates change the layout), lists side-by-side images, and may record computed styles,
+  geometry and text or per-region fingerprints (text, counts, type, colour) to point at differences. Keep it
+  small: a harness that becomes the work costs more than it saves. Pixel diffs, committed baselines and
+  element-by-element pairing are not worth their noise. If the implementor is expected to read screenshots,
+  test that it can.
+- **One gate command, checks only.** The harness has a single command (for example
+  `scripts/ui-compare gate <ID>`) that runs the project checks, captures both sides in every theme and state,
+  compares and lists the side-by-side images. It exits non-zero only for check failures, failed captures and
+  a hack scan (layout offsets that only move boxes); measured differences are printed as advisory. The
+  implementor may not report a phase done without a passing run, and the reviewer runs it first.
+- **Grading.** A difference blocks only if a person notices it at a glance: a missing or wrong element,
+  text, colour, weight or icon, or a difference of about 10 px or more. Smaller differences are not raised.
+  Each phase with screens has at most two review rounds; everything else goes to one grouped backlog line.
 
 ### Step 6 — Update PLAN.md and UI Guidelines
 

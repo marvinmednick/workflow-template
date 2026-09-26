@@ -35,11 +35,13 @@ cites them by section) and adds nothing to the screens or behaviour beyond them 
 suggestions. Do not invent or improve UI, texts, layout or behaviour the legacy system does not have. If a
 gap appears (a state the matrix does not cover, something the legacy source does not settle), read the
 running system or its source; if that does not answer it, stop and put it to the user as its own question,
-as a new forced change or suggestion. The spec's acceptance criteria for a screen say "no unexplained
-difference from legacy", not a description of how it should look. Name the project's gate command in the
-spec's checks (the one command that captures, compares and exits non-zero on any unexplained difference)
-and make its passing run, pasted into the End-of-Run Report, an acceptance criterion of every phase that
-has screens.
+as a new forced change or suggestion. The spec's acceptance criteria for a screen say "looks like legacy in
+the side-by-side images, apart from the matrix drops and approved suggestions, and the user's look agrees",
+not a description of how it should look. Name the project's gate command in the spec's checks (the one
+command that runs the checks, captures and compares) and make its passing run, pasted into the End-of-Run
+Report, an acceptance criterion of every phase that has screens. **The comparison is advisory:** the gate
+exits non-zero only for check failures, failed captures and the hack scan; measured differences are printed,
+not failing. The acceptance is the user's look. Each phase with screens is limited to two review rounds.
 
 ---
 

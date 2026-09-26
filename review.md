@@ -104,23 +104,26 @@ that shift boxes to measured coordinates). Also look at the real output (screens
 numbers: a check that passes while the result looks wrong is a finding.
 
 **Gate first.** Where the project has a legacy-comparison gate command, run it before reading the code and
-record its per-screen counts in the ledger's round line. A non-zero exit is a blocking finding on its own;
-the implementor's paste is never a substitute for your run.
+record its per-screen counts in the ledger's round line. A non-zero exit (check, capture or hack-scan
+failure) is a blocking finding on its own; the implementor's paste is never a substitute for your run. The
+comparison counts are advisory: they help you find candidates and never block by themselves.
 
 **Legacy parity check** (when the design doc has a Legacy Parity Matrix)
 
 For the screens in scope, compare the implementation with the legacy system (its running instance and
-source, or the comparison harness report if the project has one), not with the spec's description. Every
-difference must be a forced change, a drop or an approved suggestion in the design doc; any other
-difference is a **defect, whatever its merit**. Grade defects by what a user sees:
-- **blocking**: visible at a glance (a missing or wrong element, text, colour, weight, size, alignment,
-  spacing that changes the layout), or any weakening of a check;
-- **non-blocking polish**: differences of a few pixels in spacing or size that nobody would notice side by
-  side. Record all polish for a screen in **one grouped finding** (a list, with measured values) instead of
-  one finding each, so it is fixed in one pass at the end; it still ends the feature `Verified` or
-  `Deferred` like any non-blocking finding.
-Check also that nothing was added that legacy does not have, and that each state in the matrix was
-compared. Record the verdict under the Implementation heading of the ledger.
+source, or the comparison harness report if the project has one), not with the spec's description. Your
+job is function, scope and the matrix (texts, elements, behaviour), not pixels. Every difference in texts,
+elements or behaviour must be a forced change, a drop or an approved suggestion in the design doc; any other
+is a defect. Open the side-by-side images as a second pair of eyes; the user's look is the acceptance. Grade
+by what a person notices:
+- **blocking**: visible at a glance (a missing or wrong element, text, colour, weight or icon, or a
+  size or position difference of about 10 px or more), or any weakening of a check;
+- **not raised**: differences of a few pixels, and computed-style differences that look the same. If you want
+  to record them, put all of a screen's in **one grouped backlog line**, not a finding.
+**At most two review rounds per phase with screens.** Round 1 lists every blocking item in one pass; round 2
+verifies. After round 2 do not open new findings for polish: put the remainder in the backlog and ask the
+user whether to ship. Check also that nothing was added that legacy does not have, and that each state in the
+matrix was compared. Record the verdict under the Implementation heading of the ledger.
 
 ---
 

@@ -33,10 +33,9 @@ Check the plan against the spec for each item:
 - Every difference from legacy the plan introduces is a listed forced change, a drop, or an approved
   suggestion; anything else is a finding
 
-**Gate and coverage** (when the phase has screens compared with legacy): the plan names the gate command
-and the harness covers every visible element of each state (an element walk, not only named points); if
-coverage depends on points the plan lists, ask whether every visible element of the screen is reachable
-through them.
+**Gate** (when the phase has screens compared with legacy): the plan names the gate command (checks,
+captures and compares; comparison advisory) and says how the implementor looks at each side-by-side image.
+Do not require the harness to cover every element or to reach zero differences.
 
 **Checks** (tests, measurement or comparison tools, expected-difference lists, thresholds)
 - Every change to a test, harness or expectation file is listed in the plan by file and is justified by the

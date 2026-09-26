@@ -5,6 +5,37 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v23 (2026-09-25)
+
+### Summary
+
+A legacy-parity phase (F4.3 in daystrom-patent-analysis) spent hours on differences of a few pixels: every
+measured difference blocked, the harness grew (point checks, an element walk, then fingerprints), and the
+gate had to reach zero. The user could not tell the result from legacy at a glance. The comparison becomes
+advisory and the user's look the acceptance.
+
+### What changed
+
+- **`design.md`** — Legacy parity: the harness finds candidates and stays small; one gate command that
+  exits non-zero only on check failures, failed captures and the hack scan; grading by what a person
+  notices (about 10 px or more); at most two review rounds per phase. Removes the element-walk coverage rule.
+- **`spec.md`** — Acceptance for a screen is "looks like legacy in the side-by-side images, and the user's
+  look agrees"; the gate is checks only; two review rounds.
+- **`review.md`** — Gate counts are advisory; the reviewer checks function, scope and the matrix, not
+  pixels; few-pixel differences are not raised; two rounds, then ask the user whether to ship.
+- **`design.md`** — also: choose the parity level with the user (pixel-close, or function, texts, elements and feel with a shared component set; prefer the latter).
+- **`review-plan.md`** — "Gate" item replaces "Gate and coverage" (no element-coverage requirement).
+- **`skeleton/AGENT-template.md`** — Legacy Parity: the gate fails only on checks; the implementor owns
+  "looks right"; few-pixel differences are not chased.
+
+### What existing projects need to do
+
+Command changes are live. In a project with a legacy comparison harness: make the gate exit non-zero only
+on check failures, failed captures and the hack scan (print measured differences as advisory); add the
+sentences from `AGENT-template.md` (Legacy Parity) to `AGENT.md`; set `.workflow-version` to 23.
+
+---
+
 ## v22 (2026-09-25)
 
 ### Summary
