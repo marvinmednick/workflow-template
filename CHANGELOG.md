@@ -5,6 +5,42 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v24 (2026-09-28)
+
+### Summary
+
+F293 in daystrom-patent-analysis was retrofitted from an unphased spec into a phased one mid-flight,
+after 4 review rounds had already happened on it as one unit. The next step's naming was guessed
+rather than derived from a rule: `./implement F293.1` was suggested, but phase 1's plan/implement
+artifacts never actually get a `.1` suffix under the existing convention — only phase 2 onward does.
+That special case (phase 1 = bare `F[N]`, phase 2+ = `F[N].[P]`) is what created the ambiguity; the fix
+removes the special case rather than adding a rule for the retrofit case alone.
+
+### What changed
+
+- **`spec.md`** — Every phase, including phase 1, now uses the `F[N].[P]` suffix for its
+  plan/progress/review artifacts and its `./implement`/`/review-plan`/`/complete` invocations. Only the
+  spec file itself stays a single shared, unsuffixed file. `/spec` reports this explicitly for a phased
+  feature ("Start with: `./implement F[N].1 --plan`"). Added explicit guidance for retrofitting phases
+  onto an already-specced, unphased feature: treat the existing bare-named work as Phase 1 by fact
+  (don't rename its files), start the new phased spec at Phase 2. "Implementation Commands" gained a
+  phased-feature variant showing the full `.1` → `.2` → ... → whole-feature-close sequence.
+- **`skeleton/WORKFLOW-template.md`** — "Phased Features" already said `./implement F4` (bare) is an
+  error for a phased feature — already correct, and already in tension with `spec.md`'s old phase-1
+  exception before this fix. Updated its Notation and loop-table wording to match: phase 1 always uses
+  `.1`, no special case; added the same retrofit paragraph as `spec.md`.
+
+### What existing projects need to do
+
+Command changes are live (symlinked). No skeleton file changed, so no manual action beyond setting
+`.workflow-version` to 24. A feature already mid-implementation under the old convention (phase 1 at
+bare `F[N]`) does not need to be renamed — the retrofit guidance in `spec.md`/`WORKFLOW-template.md`
+covers exactly that case. If your project's `WORKFLOW.md` has a "Phased Features" section copied from
+an earlier skeleton, merge in the updated Notation/loop-table wording (same additive shape, no
+structural change).
+
+---
+
 ## v23 (2026-09-25)
 
 ### Summary

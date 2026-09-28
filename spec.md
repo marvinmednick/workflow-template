@@ -21,13 +21,34 @@ spec file:
   any parity rows, and the marker `<!-- detail: pending -->` right under the heading.** Detail written
   now for code that does not exist yet goes stale.
 
+**Every phase, including phase 1, uses the `F[N].[P]` suffix for its plan/progress/review artifacts
+and its `./implement`/`/review-plan`/`/complete` invocations** — `plans/F[N].1-plan.md`, `./implement
+F[N].1`, `/complete F[N].1`, exactly like phase 2 onward. There is no special case where phase 1 uses
+the bare `F[N]` name for these — only the spec file itself stays a single shared, unsuffixed file
+(`specs/F[N]-[slug].md`), since a phased feature's sections all live in it together. Report this
+explicitly at the end of `/spec` for a phased feature: *"This is a phased feature (N phases). Start
+with: `./implement F[N].1 --plan`."* Bare `F[N]` is reserved for the spec/design docs and for
+`/complete F[N]`, which closes the whole feature once every phase is closed (see `complete.md`).
+
 **Detail mode — `/spec F[N].[P]`.** Used at the start of phase P (P > 1) after phase P-1 is closed.
 Read the design doc, the whole spec, `plans/F[N]-log.md`, the closed phases' ledgers and progress files,
 and the code as built. Edit **only** the `## Phase P` section: fill in the detail tier, replace the
 marker with `<!-- detail: written [DATE] -->`, and correct its Goal and Acceptance Criteria if the
 earlier phases changed the picture. If earlier phases changed anything the shared sections or later
 phases rely on, list the changes to make and make them with the user's agreement. Then suggest
-`./implement F[N].[P] --plan`.
+`./implement F[N].[P] --plan`. (Phase 1 needs no separate detail-mode call — its detail is written in
+the initial `/spec` pass above — but its implementation artifacts still use the `.1` suffix per the
+rule above.)
+
+**Retrofitting phases onto an already-specced, unphased feature.** If `F[N]` was originally specced
+without phases (bare `plans/F[N]-plan.md` etc. already exist, possibly already implemented and
+reviewed) and the feature is later split into phases — typically because scope grew mid-flight — do
+not rename or renumber the existing bare-named artifacts. Treat that already-existing work as Phase 1
+by fact, not by relabeling: leave its files exactly as they are, and start the new phased spec's
+sections at **Phase 2**. Say so plainly in the spec's Context section (e.g. "Phase 1 = the work
+already completed under `plans/F[N]-plan.md`/`plans/F[N]-review.md`; this spec covers Phase 2
+onward"), so a later reader isn't looking for a `plans/F[N].1-*.md` that was never created. The new
+phases still follow the `.[P]` suffix rule above starting from `.2`.
 
 ### Legacy parity
 If the design doc has a Legacy Parity Matrix, the spec **reproduces the rows for its scope verbatim** (or
@@ -310,7 +331,26 @@ Common triggers: novel UI element resolved inline, new data access pattern, new 
 
 ## Implementation Commands
 
-**If Review Level is Full:**
+**If the feature is phased** (regardless of Review Level — phased features are always Full), every
+phase including phase 1 uses the `.[P]` suffix, per "Phased features" above:
+```bash
+# Phase 1
+./implement F[N].1 --plan
+# /review-plan F[N].1
+./implement F[N].1
+# /review-impl F[N].1
+# /complete F[N].1
+
+# Phase 2 (after phase 1 closes)
+# /spec F[N].2            # detail mode, fills in Phase 2's detail tier
+./implement F[N].2 --plan
+...
+
+# Once every phase is closed:
+# /complete F[N]           # closes the whole feature
+```
+
+**If Review Level is Full (not phased):**
 ```bash
 # Step 1: Write the plan
 ./implement F[N] --plan
