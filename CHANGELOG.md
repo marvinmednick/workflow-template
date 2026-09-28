@@ -5,6 +5,46 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v25 (2026-09-28)
+
+### Summary
+
+`AGENT-template.md`'s "Legacy Parity" section is baked into every project's `AGENT.md` unconditionally,
+even though it only matters for a project rebuilding an existing system's screens against a running
+legacy instance — most projects never do this (daystrom-patent-analysis, a backend pipeline, never
+will). `design.md` already treats a Legacy Parity Matrix as conditional per-feature; the implementor-side
+template didn't mirror that. There was also no general mechanism for a project to accumulate its own
+implementor rules over time — only static, fill-in-the-blank `<!-- PROJECT-SPECIFIC -->` markers meant
+for one-time setup customization, not something that grows mid-project when an unrelated need (a
+different project's equivalent of Legacy Parity) comes up later.
+
+### What changed
+
+- **New**: `PROJECT_AGENT.md` convention — an optional, project-owned file for implementor rules that
+  don't belong in the shared template. `AGENT-template.md` gained a permanent "Project-Specific Rules"
+  section telling the implementor to read it when present.
+- **`skeleton/snippets/`** (new directory) — reusable, opt-in `AGENT.md`-style sections for known but
+  not universal cases. `legacy-parity.md` is the first one, extracted verbatim from `AGENT-template.md`
+  (its "Checks Are Not Yours To Change" neighbor stays in the base template — that content is general,
+  not legacy-specific). `README.md` documents the copy-in mechanism.
+- **`design.md`** — Legacy Parity Matrix section now points to `skeleton/snippets/legacy-parity.md`,
+  noting a project's first Legacy Parity Matrix should get the snippet copied into its own
+  `PROJECT_AGENT.md`. Manual for now — `/design` does not yet detect this automatically and offer it;
+  deliberately deferred (documenting the convention and building the detection trigger were treated as
+  separable).
+- **`CLAUDE-template.md`/`WORKFLOW-template.md`** — file-reference tables gained a `PROJECT_AGENT.md`
+  row.
+
+### What existing projects need to do
+
+Skeleton files changed. A project with an existing "Legacy Parity" section in its `AGENT.md` (added
+under v19/v21/v22/v23) may leave it in place — nothing forces a move — but going forward, new projects
+(or ones that never added it) get it only via `PROJECT_AGENT.md` when a feature actually needs it. Add
+the "Project-Specific Rules" section to `AGENT.md` from `AGENT-template.md`. Set `.workflow-version` to
+25.
+
+---
+
 ## v24 (2026-09-28)
 
 ### Summary

@@ -169,6 +169,11 @@ Glossary: [authoritative load-bearing vocabulary — one line per term]
 the existing behaviour and layout. Read the existing code and the running system (not summaries) and
 list every screen and function in scope in the parity matrix.
 
+The first time a project's design work produces this matrix, its `AGENT.md`/`PROJECT_AGENT.md` needs the
+matching implementor-side rules: copy `skeleton/snippets/legacy-parity.md` into that project's
+`PROJECT_AGENT.md` (creating it if it doesn't exist yet) if it isn't there already. Not yet automatic —
+check manually for now.
+
 - A **forced change** or a **drop** needs a reason: something in the new system cannot behave the same
   way. Put each to the user as its own question, never inside a paragraph or a list of other decisions.
 - A **suggested change** is an improvement the new system could make on purpose. Collect them in the

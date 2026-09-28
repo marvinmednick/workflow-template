@@ -121,6 +121,7 @@ The clean separation matters: implementation tools work best with precise instru
 | `IDEAS.md` | Holding area for AI-generated enhancement suggestions not yet reviewed | Claude |
 | `CODING.md` | Coding conventions and patterns — the implementor's reference | Claude (when new patterns are established) |
 | `AGENT.md` | Behavioral rules for all implementation agents | Claude (when scope discipline changes) |
+| `PROJECT_AGENT.md` | This project's own implementor rules beyond the shared template (optional, may not exist) | Claude (e.g. `/design` producing a Legacy Parity Matrix) |
 | GitHub Issues | Formal record linked to commits | Claude (via `gh` CLI) |
 
 ### Feature IDs vs GitHub Issue Numbers
@@ -302,6 +303,7 @@ All workflow commands are available in both **Claude Code** and **Codex CLI**:
 | `SESSION_NOTES.md` | Starting a session — recent progress and decisions |
 | `CLAUDE.md` | Starting a Claude session — project guidance |
 | `AGENT.md` | Starting any implementation session — behavioral rules |
+| `PROJECT_AGENT.md` | Starting any implementation session, if present — this project's own additional rules |
 | `CODING.md` | Starting any implementation session — coding conventions |
 | `REVIEW.md` | Project-specific review checklist (read by `/review-impl`) |
 | `commands/*.md` | Shared command instructions — symlinked from the workflow-template clone |
