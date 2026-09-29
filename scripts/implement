@@ -192,9 +192,18 @@ if [[ -n "$PHASE" ]]; then
     echo "Error: ${BASE_ID} has ${SPEC_PHASES} phases; ${SPEC_ID} is out of range."
     exit 1
   fi
+  # Retrofit case (see WORKFLOW.md "Retrofitting phases"): a spec file may document only
+  # Phase FIRST_DOCUMENTED..SPEC_PHASES, with Phase 1 (and any phases before FIRST_DOCUMENTED)
+  # standing as the pre-retrofit unphased work, at bare (unsuffixed) artifact names.
+  FIRST_DOCUMENTED=$(grep -oP '(?<=^## Phase )[0-9]+' "$FULL_SPEC_FILE" | sort -n | head -1)
   HEADINGS=$(grep -cE '^## Phase [0-9]+' "$FULL_SPEC_FILE" || true)
-  if [[ "$HEADINGS" != "$SPEC_PHASES" ]]; then
-    echo "Error: ${FULL_SPEC_FILE} declares ${SPEC_PHASES} phases but has ${HEADINGS} '## Phase N' sections."
+  EXPECTED_HEADINGS=$(( SPEC_PHASES - FIRST_DOCUMENTED + 1 ))
+  if [[ "$HEADINGS" != "$EXPECTED_HEADINGS" ]]; then
+    echo "Error: ${FULL_SPEC_FILE} declares ${SPEC_PHASES} phases (first documented: ${FIRST_DOCUMENTED}) but has ${HEADINGS} '## Phase N' sections (expected ${EXPECTED_HEADINGS})."
+    exit 1
+  fi
+  if (( PHASE < FIRST_DOCUMENTED )); then
+    echo "Error: ${FULL_SPEC_FILE} has no '## Phase ${PHASE}' section (documents Phase ${FIRST_DOCUMENTED} onward)."
     exit 1
   fi
   # The phase's block, to check that its detail has been written (see /spec F4.N).
@@ -213,14 +222,26 @@ if [[ -n "$PHASE" ]]; then
   # Entry check: the previous phase must be closed (ledger Passed and a 'Phase N closed' log entry).
   if (( PHASE > 1 )) && [[ "$SKIP_ENTRY" == false ]]; then
     PREV=$((PHASE - 1))
-    PREV_LEDGER="plans/${BASE_ID}.${PREV}-review.md"
     LOG_FILE="plans/${BASE_ID}-log.md"
-    if ! grep -q '\*\*Status:\*\* Passed' "$PREV_LEDGER" 2>/dev/null \
-       || ! grep -q "Phase ${PREV} closed" "$LOG_FILE" 2>/dev/null; then
-      echo "Error: phase ${PREV} of ${BASE_ID} is not closed, so phase ${PHASE} cannot start."
-      echo "  Needed: ${PREV_LEDGER} with Status: Passed, and a '## <date> — Phase ${PREV} closed' entry in ${LOG_FILE}."
-      echo "  Close it with /complete ${BASE_ID}.${PREV} in Claude Code (or pass --skip-entry-check to override)."
-      exit 1
+    if (( PHASE == FIRST_DOCUMENTED )); then
+      # Previous phase is the pre-retrofit unphased work — bare artifact names, no
+      # "Phase N closed" log entry ever written for it (it predates the phasing convention).
+      PREV_LEDGER="plans/${BASE_ID}-review.md"
+      if ! grep -q '\*\*Status:\*\* Passed' "$PREV_LEDGER" 2>/dev/null; then
+        echo "Error: phase ${PREV} (pre-retrofit) of ${BASE_ID} is not closed, so phase ${PHASE} cannot start."
+        echo "  Needed: ${PREV_LEDGER} with Status: Passed."
+        echo "  (Or pass --skip-entry-check to override.)"
+        exit 1
+      fi
+    else
+      PREV_LEDGER="plans/${BASE_ID}.${PREV}-review.md"
+      if ! grep -q '\*\*Status:\*\* Passed' "$PREV_LEDGER" 2>/dev/null \
+         || ! grep -q "Phase ${PREV} closed" "$LOG_FILE" 2>/dev/null; then
+        echo "Error: phase ${PREV} of ${BASE_ID} is not closed, so phase ${PHASE} cannot start."
+        echo "  Needed: ${PREV_LEDGER} with Status: Passed, and a '## <date> — Phase ${PREV} closed' entry in ${LOG_FILE}."
+        echo "  Close it with /complete ${BASE_ID}.${PREV} in Claude Code (or pass --skip-entry-check to override)."
+        exit 1
+      fi
     fi
   fi
   # Give the implementor only the shared sections plus this phase.
