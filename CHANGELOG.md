@@ -5,6 +5,69 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v27 (2026-09-29)
+
+### Summary
+
+A patent-analysis session filed 7 follow-up issues (#298-304) with bare `gh issue create` instead of
+`create-feature-issue.sh` or the bug-track's `--label bug` pattern, bypassing type/effort/severity
+labels entirely and, twice, the F#=issue# invariant itself (a hand-typed F-number drifted from the
+actual issue number until caught and corrected). Reviewing the surrounding issue range (#283-292)
+found the same gap predates this session — several open items had no type label at all despite
+having real spec-shaped content.
+
+### What changed
+
+- **`feature.md`** — added a one-line rule directly under the F#=issue# invariant note: any new
+  issue, including a quick mid-conversation follow-up, must go through `create-feature-issue.sh` or
+  the bug-track's `gh issue create --label bug`, never a bare `gh issue create`. Includes a one-line
+  bug-vs-enhancement/feature discriminator (wrong output today vs. missing/limited by design).
+
+### Skeleton file changes (review and update existing projects)
+
+- None — `feature.md` is symlinked; it auto-updates, no manual action needed.
+
+### New skeleton files
+- None
+
+### New required project files
+- None
+
+---
+
+## v26 (2026-09-28)
+
+### Summary
+
+`scripts/implement`'s phase validation assumed a phased spec always documents Phase 1 through Phase N
+in the file itself. The "Retrofitting phases onto an already-specced, unphased feature" convention
+(`WORKFLOW.md`, added in v24) says a retrofitted spec's file starts documenting at Phase 2 (or later),
+with Phase 1 standing as the pre-retrofit unphased work at bare artifact names — but the script was
+never updated to match, so `./implement F[N].2 --plan` on a real retrofit case (F293) failed with
+"declares 5 phases but has 4 '## Phase N' sections."
+
+### What changed
+
+- **`scripts/implement`** — phase-count check now derives the first *documented* phase from the lowest
+  `## Phase N` heading actually present, and requires exactly `SPEC_PHASES - FIRST_DOCUMENTED + 1`
+  sections instead of assuming `SPEC_PHASES` sections starting at 1.
+- **`scripts/implement`** — the "previous phase must be closed" entry check, when the previous phase is
+  the retrofitted Phase 1, now looks for `plans/F[N]-review.md` (bare name, `Status: Passed`) instead of
+  `plans/F[N].1-review.md` + a "Phase 1 closed" log entry — matching what a retrofit's Phase 1 artifacts
+  actually look like (they predate the phasing convention, so no such log entry was ever written).
+
+### Skeleton file changes (review and update existing projects)
+
+- None — this is a symlinked script fix; it auto-updates, no manual action needed.
+
+### New skeleton files
+- None
+
+### New required project files
+- None
+
+---
+
 ## v25 (2026-09-28)
 
 ### Summary

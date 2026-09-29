@@ -89,6 +89,12 @@ Incorporate feedback and re-present if needed. When the user confirms, proceed.
 > counter — GitHub assigns the number, and the workflow ID is derived from it. This guarantees the
 > two can never drift (they drift the moment any non-feature issue is filed between two features).
 
+> **Any new issue — including a quick mid-conversation follow-up — goes through `create-feature-issue.sh`
+> (feature/enhancement, this flow) or `gh issue create --label bug` (a defect, see `resolve.md`'s Bug
+> Flow), never a bare `gh issue create`.** A bare call skips the type/effort/severity labels and the
+> F#=issue# invariant both flows depend on. If unsure which flow applies: does existing code produce
+> wrong output today (bug) or is something merely missing/limited by design (feature/enhancement)?
+
 ### 5a — Choose the type label (significance)
 
 Every tracked item gets an F-number and the same `/design` → `/spec` → `/review` workflow. The label
