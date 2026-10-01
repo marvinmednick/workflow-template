@@ -13,7 +13,8 @@ no syncing or per-project updates needed.
 *.md                  # Generic workflow commands (symlinked as commands/ in each project)
 scripts/              # Shell scripts (symlinked into each project root)
 configs/              # Tool config files (symlinked into each project root)
-claude-stubs/         # Claude Code command stubs (symlinked into .claude/commands/)
+claude-stubs/         # Claude Code command stubs (symlinked into .claude/commands/) — also the manifest for Codex skills
+codex-skills/         # Generated Codex skill wrappers (symlinked into .agents/skills/<name>/SKILL.md)
 skeleton/             # Starting-point files — copy and customize per project
 ```
 
@@ -66,6 +67,19 @@ Finally, verify all symlinks are in place:
 
 Pulls the latest template clone. Since all commands, scripts, stubs, and configs are
 symlinks, they update instantly — no per-project changes needed.
+
+## Codex skills
+
+Codex finds skills at `.agents/skills/<name>/SKILL.md`. These are generated from `claude-stubs/`
+(filename = skill name, first line = description, `commands/<x>.md` = canonical workflow), so there is
+one source of truth. After adding or changing a stub:
+
+```bash
+scripts/gen-codex-skills.sh          # rewrite codex-skills/, then commit
+scripts/gen-codex-skills.sh --check  # drift check (also part of ./verify-repo)
+```
+
+`setup.sh` and `update-workflow` link the results into each project; `verify-links` checks them.
 
 ## Improving shared commands
 

@@ -8,6 +8,7 @@
 set -euo pipefail
 
 TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
+source "$TEMPLATE/scripts/workflow-lib.sh"
 ISSUES=()
 OK=0
 
@@ -45,8 +46,7 @@ check_link() {
 }
 
 echo "=== Commands ==="
-for cmd in complete.md design.md design-review.md feature.md fix-baseline.md \
-           implement.md investigate.md resolve.md review-plan.md spec.md triage.md review.md; do
+for cmd in $(command_files); do
   check_link "commands/$cmd" "$TEMPLATE/$cmd"
 done
 
@@ -58,10 +58,14 @@ done
 
 echo ""
 echo "=== Claude Code stubs ==="
-for stub in complete.md design.md design-review.md feature.md fix-baseline.md \
-            implement.md investigate.md resolve.md review-impl.md review-plan.md \
-            spec.md triage.md upgrade-workflow.md; do
-  check_link ".claude/commands/$stub" "$TEMPLATE/claude-stubs/$stub"
+for name in $(stub_names); do
+  check_link ".claude/commands/$name.md" "$TEMPLATE/claude-stubs/$name.md"
+done
+
+echo ""
+echo "=== Codex skills ==="
+for name in $(stub_names); do
+  check_link ".agents/skills/$name/SKILL.md" "$TEMPLATE/codex-skills/$name/SKILL.md"
 done
 
 echo ""

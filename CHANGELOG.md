@@ -5,6 +5,43 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v28 (2026-09-30)
+
+### Summary
+
+Codex could not use the workflow commands: Codex discovers skills as `.agents/skills/<name>/SKILL.md`
+(with YAML frontmatter), not `.claude/commands/`. `claude-stubs/` is now the single manifest for both
+tools — each stub's filename, first line, and `commands/<x>.md` target generate a Codex skill wrapper.
+
+### What changed
+
+- **`codex-skills/<name>/SKILL.md`** (new, generated, committed) — thin wrappers for all 14 stubs that
+  tell Codex to read and follow `commands/<target>.md`. Regenerate with `scripts/gen-codex-skills.sh`
+  after adding or editing a stub; `--check` reports drift (also run by `verify-repo`).
+- **`codex-skills.d/<name>.conf`** (new, optional) — per-skill `description=`/`arguments=` overrides
+  for the generator; set for `investigate`, `resolve`, `triage`, `complete`, `review-plan`, `spec`.
+- **`scripts/workflow-lib.sh`** (new, sourced) — `stub_names`, `stub_target`, `command_files`,
+  `link_codex_skills`.
+- **`setup.sh`, `update-workflow`, `verify-links`** — command and stub lists are now derived from
+  `claude-stubs/` instead of hardcoded (fixes `revise.md` missing from `setup.sh`/`verify-links`
+  commands, `review-impl`/`revise` missing from `verify-links` stubs). They also link/verify
+  `.agents/skills/<name>/SKILL.md`. `update-workflow` now refreshes links, so new stubs reach existing
+  projects.
+
+### Skeleton file changes (review and update existing projects)
+
+- None. Run `./update-workflow` (or `/upgrade-workflow`) once to create the `.agents/skills/` links.
+  Hand-written `.agents/skills/<name>/SKILL.md` files must be removed first; `verify-links` reports
+  them as real files and will not overwrite them.
+
+### New skeleton files
+- None
+
+### New required project files
+- None
+
+---
+
 ## v27 (2026-09-29)
 
 ### Summary

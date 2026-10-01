@@ -100,6 +100,15 @@ else
   check_fail ".workflow-version missing — run /upgrade-workflow to initialize"
 fi
 
+# ── Codex skills ──────────────────────────────────────────────────────────────
+echo ""
+echo "=== Codex skills ==="
+if "$TEMPLATE/scripts/gen-codex-skills.sh" --check >/dev/null 2>&1; then
+  check_ok "template codex-skills/ match claude-stubs/"
+else
+  check_fail "template codex-skills/ out of date — run $TEMPLATE/scripts/gen-codex-skills.sh and commit"
+fi
+
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 if [[ ${#ISSUES[@]} -eq 0 ]]; then

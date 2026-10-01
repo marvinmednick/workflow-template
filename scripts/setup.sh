@@ -10,6 +10,7 @@
 set -euo pipefail
 
 TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
+source "$TEMPLATE/scripts/workflow-lib.sh"
 
 if [[ ! -d "$TEMPLATE" ]]; then
   echo "Error: workflow-template not found at $TEMPLATE"
@@ -29,9 +30,7 @@ done
 echo ""
 echo "Linking commands/..."
 mkdir -p commands
-for cmd in complete.md design.md design-review.md feature.md fix-baseline.md \
-           implement.md investigate.md resolve.md review-plan.md spec.md triage.md \
-           review.md upgrade-workflow.md; do
+for cmd in $(command_files); do
   ln -sf "$TEMPLATE/$cmd" "commands/$cmd"
   echo "  linked commands/$cmd"
 done
@@ -47,12 +46,15 @@ done
 echo ""
 echo "Linking Claude Code stubs..."
 mkdir -p .claude/commands
-for stub in complete.md design.md design-review.md feature.md fix-baseline.md \
-            implement.md investigate.md resolve.md review-impl.md review-plan.md \
-            spec.md triage.md upgrade-workflow.md; do
+for name in $(stub_names); do
+  stub="$name.md"
   ln -sf "$TEMPLATE/claude-stubs/$stub" ".claude/commands/$stub"
   echo "  linked .claude/commands/$stub"
 done
+
+echo ""
+echo "Linking Codex skills..."
+link_codex_skills
 
 echo ""
 echo "Linking configs..."
