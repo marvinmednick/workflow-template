@@ -5,6 +5,38 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v29 (2026-10-02)
+
+### Summary
+
+v23–v25 fixed "the implementor's hands were tied trying to match legacy pixel-for-pixel" — but only
+for screens with a Legacy Parity Matrix (an existing reference screen to compare against). A
+daystrom-patent-analysis session (F20, named patent sets) hit the same failure mode on a screen with
+**no** legacy equivalent: the spec's sample HTML/Alpine code, written to verify the UI mechanics held
+together, silently became the de facto contract once handed to the implementor (Codex, in this case),
+who then matched it closely rather than using judgment — recreating the exact "20 revisions to ship a
+simple screen" problem v23 was meant to solve, just outside the one case that fix covered.
+
+### What changed
+
+- **`spec.md`** — new "Binding vs. illustrative detail" subsection under Mid-Spec Interaction,
+  applying to any screen's spec, with or without a Legacy Parity Matrix: data model, routes,
+  permissions and state ownership are binding; markup, CSS, exact copy and layout proportions are a
+  reference only, and the spec must say so explicitly and invite the implementor to iterate on them
+  directly with the user rather than via a full re-spec round. Without a matrix, there is no external
+  ground truth at all, so skipping this split is the common failure mode — state it every time a spec
+  includes UI markup.
+- **`review.md`** — new note alongside the Legacy parity check: a deviation from the spec's
+  illustrative markup is not itself a finding; judge screens against Acceptance Criteria, the binding
+  tier, and the user's own look at the built screen. A spec that gave no illustrative-detail split for
+  a screen is itself a spec-review finding.
+
+### What existing projects need to do
+
+Command changes are live (symlinked). No skeleton file changed; set `.workflow-version` to 29.
+
+---
+
 ## v28 (2026-09-30)
 
 ### Summary

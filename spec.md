@@ -163,6 +163,30 @@ Check each UI element against `docs/design/ui-guidelines.md` (if present):
 
 **If significant choices accumulate during spec writing** (more than one or two non-trivial decisions made inline): offer to write or update `docs/design/F[N]-[slug].md` with those decisions before finalizing the spec, and propagate novel UI decisions to `docs/design/ui-guidelines.md`.
 
+### Binding vs. illustrative detail (any screen, with or without a Legacy Parity Matrix)
+
+A spec for a screen has two tiers, and the spec must say so explicitly, not leave it implied:
+
+- **Binding** — the data model, routes, permission/visibility checks, state ownership (what's
+  server-rendered vs. Alpine-local), and the Acceptance Criteria / Tests to Write. Get this wrong
+  and the feature is broken, not just differently styled. Write this tightly and precisely,
+  including literal code where several moving parts must agree with each other exactly (e.g. a
+  permission flag that has to reach three templates consistently).
+- **Illustrative** — any markup, CSS, exact copy, spacing, or layout proportions given to show one
+  way of satisfying the binding tier. This is a reference, not a requirement. Say so in the spec
+  itself, near the top: the implementor should adjust these freely and **iterate on them directly
+  with the user** (not through a full spec revision or `/review-impl` round) when something looks
+  or feels wrong.
+
+This applies whether or not the screen has a Legacy Parity Matrix. With a matrix, "illustrative"
+still means pixel/pixel-adjacent comparison is advisory (see "Legacy parity" above) — the matrix is
+binding on *scope* (texts, elements, behaviour), not on exact styling. Without a matrix (novel UI,
+no reference screen), there is no external ground truth to lock the UI tier to at all, so skipping
+this split is the common failure: the spec's own sample markup silently becomes the de facto
+contract, the implementor matches it closely rather than using judgment, and a small visual
+correction forces a round of re-spec → re-implement instead of a direct fix. State the split
+explicitly every time a spec includes UI markup, novel or not.
+
 ---
 
 ## Determine Review Level

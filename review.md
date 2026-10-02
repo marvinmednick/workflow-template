@@ -108,6 +108,14 @@ record its per-screen counts in the ledger's round line. A non-zero exit (check,
 failure) is a blocking finding on its own; the implementor's paste is never a substitute for your run. The
 comparison counts are advisory: they help you find candidates and never block by themselves.
 
+**Illustrative UI detail is not a contract.** If the spec marked its markup/CSS/layout as
+illustrative (see spec.md's "Binding vs. illustrative detail"), a deviation from that sample markup
+is not itself a finding — judge screens against the Acceptance Criteria and the binding tier
+(data, routes, permissions, state ownership), and against the user's own look at the built screen,
+not against whether the implementation reproduces the spec's sample HTML. Raise a finding only when
+a binding item is actually wrong, or when the spec gave no illustrative-detail split for a screen at
+all (itself a spec-review finding — see spec.md).
+
 **Legacy parity check** (when the design doc has a Legacy Parity Matrix)
 
 For the screens in scope, compare the implementation with the legacy system (its running instance and
