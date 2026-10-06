@@ -19,8 +19,8 @@ Behaviour that only appears against the running system was first seen by the rev
 
 ### What changed
 
-- **`scripts/implement`** — new optional `.implement.conf` key `GATE_CMD` (the project's full check, for
-  example `make ci`). When set, the implementor's prompt requires it to exit 0 after the final test run and
+- **`scripts/implement`** — new optional `.implement.conf` key `GATE_CMD` (the project's full check as the implementor can run it
+  locally, for example `./scripts/check`; a CI-only target with hardcoded service credentials will not work). When set, the implementor's prompt requires it to exit 0 after the final test run and
   forbids lint suppressions. The prompt also now states four rules up front: every test must be able to fail,
   write every named test (record renames in the progress file), no placeholder or zero data to make a tool
   look as if it works, and tests must not write inside the repository.
@@ -40,7 +40,7 @@ Behaviour that only appears against the running system was first seen by the rev
 
 1. Link the new script: `ln -s <template>/scripts/check-spec-tests ./check-spec-tests` (or re-run `setup.sh`;
    `verify-links` reports it missing until then).
-2. Optional but recommended: add `GATE_CMD=<your full check>` (for example `GATE_CMD=make ci`) to
+2. Optional but recommended: add `GATE_CMD=<your full check>` (one that passes on a developer machine, not a CI-only target) to
    `.implement.conf`, and `TEST_DIRS=tests` if your tests live elsewhere.
 3. Optional: copy Test Rules 4 to 7 from `skeleton/AGENT-template.md` into the project's `AGENT.md`. The
    `implement` prompt already carries them, so this only helps tools that read `AGENT.md` alone.
