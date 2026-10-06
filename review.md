@@ -86,7 +86,7 @@ Before reading REVIEW.md, confirm the test suite passes. Use `--if-stale` to ski
 ./check-tests --show-known --if-stale
 ```
 
-If the saved results are still fresh (no source changes since the last run), `check-tests` reports the prior result without re-running. If anything changed since the last run, it runs in full. If unexpected failures are found, stop and report them before continuing the review.
+If the saved results are still fresh (no source changes since the last run; edits to the work log, plan, ledger and spec files do not count), `check-tests` reports the prior result without re-running. If anything changed since the last run, it runs in full. If unexpected failures are found, stop and report them before continuing the review.
 
 **Project-Specific Checklist**
 
@@ -115,6 +115,29 @@ is not itself a finding — judge screens against the Acceptance Criteria and th
 not against whether the implementation reproduces the spec's sample HTML. Raise a finding only when
 a binding item is actually wrong, or when the spec gave no illustrative-detail split for a screen at
 all (itself a spec-review finding — see spec.md).
+
+**UI Review Gate (any phase that adds or changes a screen, with or without a Legacy Parity
+Matrix).** A test suite passing, and your own read of the template/view code, are not the same as
+the screen looking and working right — that only gets judged once a human has actually looked, not
+from your inference about what they would think. This is required in addition to everything else in
+this file, and it blocks `Status: Passed` exactly like an open finding does.
+
+1. **Look yourself first.** Confirm the stack is actually reachable (start it, or ask the user to,
+   per the project's container-lifecycle convention) and open every screen the phase touched — a
+   live browser, the project's own capture/screenshot tool, or a Playwright-based browser test if one
+   exists. Reading the template is not looking at the screen. Confirm each one renders and the
+   Acceptance Criteria hold before involving the user.
+2. **Then get the user's own look — and wait for an answer.** Tell them exactly what to open (URL,
+   steps) or show them what you saw, and ask directly: does this look and work the way you expect?
+   A screenshot or description with no response back is not sign-off. Do not infer approval from
+   silence, from the user moving on to a different topic, or from your own confidence that it's fine.
+3. **Record the outcome before setting `Status: Passed`.** Fill the ledger's `## UI Review` section
+   (below) with what the user actually said. Until they have looked and responded, the ledger stays
+   `Needs Fixes` no matter how clean the code and tests are.
+
+This applies even when the spec marked every screen's markup illustrative, and even when there is no
+legacy equivalent to compare against — "illustrative, not a contract" governs what counts as a
+*finding*, never whether anyone needs to look at the built result.
 
 **Legacy parity check** (when the design doc has a Legacy Parity Matrix)
 
@@ -148,6 +171,7 @@ field ownership** so neither side certifies its own work.
 **Last round:** [k] | **Status:** [Needs Fixes | Passed]
 **Implementation:** [Complete | Incomplete] — [as of round k: all spec files present & reviewed | N items unimplemented, see findings]
 **Open blocking:** [count] | Open non-blocking: [count]
+**UI Review:** [N/A | Pending | Confirmed] — [N/A: no screen touched this round; Pending: not yet shown to the user or awaiting their response; Confirmed: one line on what the user actually said]
 **Doc Updates:** [Pending | Done | None]
 
 ---
@@ -169,6 +193,15 @@ field ownership** so neither side certifies its own work.
 - **Verification (reviewer):** _(unfilled)_
 
 ---
+
+## UI Review
+<!-- Filled by reviewer. Required whenever this round touched a screen — cannot set Status: Passed
+     without it being N/A or Confirmed. "Confirmed" means the user actually looked and responded,
+     not that the reviewer looked, ran tests, or inferred approval. -->
+- **Screens touched this round:** [list the URLs/templates, or "None — no UI files changed"]
+- **Shown to the user:** [how — screenshots pasted, a description + URL to open themselves, a live walkthrough]
+- **User's response:** [quote or summarize what they actually said; "awaiting response" if not yet answered]
+<!-- If no screen was touched, write: N/A — no UI files changed this round -->
 
 ## Doc Updates
 <!-- Filled by reviewer when recording Implementation: Complete. Required — cannot set Status: Passed without this section. -->
@@ -222,7 +255,12 @@ stated reason — see Convergence).
 3. Decide each non-blocking finding consciously: it must end the feature as `Verified` or `Deferred`
    (with reason) — never left silently `Open`. The default is to fix it; defer only when it is
    genuinely too costly for this pass.
-4. **When recording `Status: Passed`:** fill the `## Doc Updates` section and set the header
+4. **Before claiming `Status: Passed`, resolve `## UI Review`.** If this round touched any screen,
+   look yourself, then get the user's own look per the UI Review Gate above, and fill the section
+   with what they actually said. Set the header field to `N/A` only when no UI file changed this
+   round; otherwise it must be `Confirmed` — never set it to `Confirmed` from your own inference,
+   and never leave it `Pending` while also writing `Status: Passed`.
+5. **When recording `Status: Passed`:** fill the `## Doc Updates` section and set the header
    `Doc Updates:` field. This is required — you cannot set `Status: Passed` without it. Write
    concrete, targeted entries (enough for Claude to open the file and make the edit). If no
    architectural docs need updating, write `None` in both places. Read the spec's `### Doc Updates`
@@ -231,13 +269,14 @@ stated reason — see Convergence).
 
 ### Convergence — when the ledger is `Passed`
 
-Set `**Status:** Passed` only when **both** hold:
+Set `**Status:** Passed` only when **all** hold:
+- `UI Review` is `N/A` or `Confirmed` — never `Pending`.
 - **Zero** `blocking` findings remain in `Open`, `Addressed`, or `Reopened` (i.e. all blocking are
   `Verified`, `Deferred`-with-reason, or `Wontfix`).
 - **Every** non-blocking finding is `Verified`, `Deferred`-with-reason, or `Wontfix` — none left
   `Open` / `Addressed` / `Reopened`.
 
-Until both hold, `**Status:** Needs Fixes`.
+Until all hold, `**Status:** Needs Fixes`.
 
 ---
 
@@ -248,6 +287,8 @@ Give an overall assessment and the current ledger state:
 - Findings verified this round (count + IDs)
 - Findings reopened this round (count + IDs)
 - Still open: blocking and non-blocking counts
+- `UI Review` state — if `Pending`, say so plainly and ask for the user's look now; do not bury
+  this in the findings list or let a clean test run stand in for it
 
 ## Design Review
 

@@ -5,6 +5,71 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v31 (2026-10-05)
+
+### Summary
+
+`./implement` and `/review-impl` call `./check-tests --if-stale` so a still-valid test result is not
+re-run, but on a daystrom-patent-analysis session (F25.2 fix passes) the suite re-ran at the start of
+every fix pass. The staleness check compared `.last-test-output.txt` with every file listed by
+`git diff --name-only HEAD`, and each review round edits `WORK_LOG.md`, `PLAN.md` and the feature
+log right after running the tests, so the saved result was always older than the newest changed file.
+The same check could not see untracked files (new modules and tests), so it could also report a stale
+result as fresh.
+
+### What changed
+
+- **`scripts/check-tests`** — `--if-stale` now looks at tracked changes plus untracked, non-ignored
+  files (`git ls-files --others --exclude-standard`), and ignores workflow tracking and prose files by
+  default: `WORK_LOG.md`, `PLAN.md`, `BACKLOG.md`, `IDEAS.md`, `plans/`, `specs/`. The saved output
+  file is always ignored. Override the pattern with `STALE_IGNORE_REGEX=<extended regex on
+  repo-relative paths>` in `.implement.conf` (an override replaces the default list). Deleted files no
+  longer break the check. The message now says "no relevant changes since".
+- **`complete.md`, `review.md`** — wording only: they say which files do not count.
+
+### What existing projects need to do
+
+Nothing. All changed files are symlinked. Optional: add `STALE_IGNORE_REGEX` to `.implement.conf` if the
+project keeps other prose or generated files that should not invalidate a test run. Not changed: the
+implementor's own test runs (plain `TEST_CMD`) do not write `.last-test-output.txt`; only `check-tests`
+does.
+
+---
+
+## v30 (2026-10-04)
+
+### Summary
+
+v29 fixed the implementor rigidly matching illustrative markup, but left the actual enforcement
+soft: `review.md` said to judge screens "against the user's own look at the built screen," which
+read as the reviewer's own inference about what the user would think, not a requirement that the
+user actually look and respond. On a daystrom-patent-analysis session (F24, Celery run queue —
+three phases, each with real screens by phase 3), the reviewer ran `/review-impl` to `Passed` for
+every UI-touching phase purely from code/test review — same failure, third time, despite v29's
+fix — and the user had never seen or used any of the screens. No gate anywhere actually stopped
+`Passed` from being set without the user's sign-off.
+
+### What changed
+
+- **`review.md`** — new "UI Review Gate" section (any phase that adds or changes a screen, with or
+  without a Legacy Parity Matrix): look at the running screen yourself first, then show the user and
+  wait for their actual response, then record it. New ledger header field `**UI Review:** [N/A |
+  Pending | Confirmed]` and a new `## UI Review` section (same required-before-`Passed` treatment as
+  `## Doc Updates`). `Status: Passed` is now blocked while `UI Review` is anything but `N/A` or
+  `Confirmed` — added explicitly to the Convergence rule and the per-round checklist, and to the
+  round summary reported to the user.
+- **`complete.md`** — phase-close Step 1 (Verify) now also checks the ledger's `UI Review` field
+  before closing a phase; a missing field (an older ledger) is treated the same as `Pending`, not
+  waved through.
+
+### What existing projects need to do
+
+Command changes are live (symlinked). No skeleton file changed; set `.workflow-version` to 30. A
+ledger already `Passed` under the old rules is not retroactively reopened by this version, but any
+phase not yet closed should get a `UI Review` pass before `/complete`.
+
+---
+
 ## v29 (2026-10-02)
 
 ### Summary

@@ -6,7 +6,8 @@
 #   ./check-tests --show-known        # Also print known failures that were observed
 #   ./check-tests --show-all          # Print a full failure report regardless of baseline
 #   ./check-tests --if-stale          # Skip re-run if .last-test-output.txt is newer than
-#                                     #   any uncommitted source change; re-run if stale
+#                                     #   any uncommitted or new source change (tracking and
+#                                     #   prose files ignored); re-run if stale
 #
 # Exit codes:
 #   0 — All failures are in the known list (or there are no failures)
@@ -16,6 +17,7 @@
 # Configuration (in .implement.conf):
 #   TEST_CMD=npm --prefix client test -- --watchAll=false
 #   KNOWN_FILE=client/known-test-failures.txt
+#   STALE_IGNORE_REGEX=...   (optional; paths --if-stale ignores — see below)
 
 set -euo pipefail
 
@@ -59,21 +61,32 @@ RAW_OUTPUT="$TMPDIR_BASE/test-output.txt"
 FAILURES_FILE="$TMPDIR_BASE/failures.txt"
 LAST_OUTPUT=".last-test-output.txt"
 
-# --if-stale: skip re-run when saved output is newer than any uncommitted source change.
-# "Uncommitted source change" = any file shown by `git diff --name-only HEAD`.
-# If there are no such files (everything committed), the saved output is always fresh.
+# --if-stale: skip re-run when saved output is newer than any uncommitted change to a file that
+# can affect test results. "Changed file" = tracked files differing from HEAD
+# (`git diff --name-only HEAD`) plus untracked, non-ignored files (`git ls-files --others
+# --exclude-standard`, so new modules and tests are seen). Workflow tracking and prose files
+# (work log, plan, backlog, ideas, plans/, specs/) are ignored: every
+# review round edits them right after running the tests, which would otherwise make the saved
+# result look stale every time. Override the ignore pattern with STALE_IGNORE_REGEX (an
+# extended regex matched against repo-relative paths; the saved output itself is always ignored)
+# in .implement.conf.
+# If there are no relevant changed files (everything committed), the saved output is always fresh.
+STALE_IGNORE_REGEX=$(grep '^STALE_IGNORE_REGEX=' "$CONFIG_FILE" 2>/dev/null | head -1 | sed 's/^STALE_IGNORE_REGEX=//' || true)
+STALE_IGNORE_REGEX="${STALE_IGNORE_REGEX:-^(WORK_LOG|PLAN|BACKLOG|IDEAS)\\.md$|^(plans|specs)/}"
 if $IF_STALE && [[ -f "$LAST_OUTPUT" ]]; then
   last_test_mtime=$(stat -c %Y "$LAST_OUTPUT" 2>/dev/null || echo 0)
-  # Find mtime of the newest uncommitted changed file (empty if none)
-  latest_change_mtime=$(git diff --name-only HEAD 2>/dev/null \
-    | xargs -r stat -c %Y 2>/dev/null \
+  # Find mtime of the newest relevant changed file (empty if none)
+  latest_change_mtime=$( { git diff --name-only HEAD 2>/dev/null; \
+                           git ls-files --others --exclude-standard 2>/dev/null; } \
+    | sort -u | grep -Fxv "$LAST_OUTPUT" | grep -Ev "$STALE_IGNORE_REGEX" \
+    | while IFS= read -r changed; do [[ -e "$changed" ]] && stat -c %Y "$changed"; done \
     | sort -rn | head -1 || true)
   latest_change_mtime="${latest_change_mtime:-0}"
   if [[ "$last_test_mtime" -gt "$latest_change_mtime" ]]; then
     run_time=$(date -d "@$last_test_mtime" '+%Y-%m-%d %H:%M:%S' 2>/dev/null \
       || date -r "$last_test_mtime" '+%Y-%m-%d %H:%M:%S' 2>/dev/null \
       || echo "unknown time")
-    echo "Tests still valid — last run at $run_time, no source changes since."
+    echo "Tests still valid — last run at $run_time, no relevant changes since."
     # Re-surface the summary line from the saved output (starts with ✓, ✗, or ⚠)
     last_summary=$(grep -E '^[✓✗⚠]' "$LAST_OUTPUT" | tail -1 || true)
     [[ -n "$last_summary" ]] && echo "$last_summary"
