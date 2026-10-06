@@ -43,7 +43,7 @@ ls plans/F[N]-log.md 2>/dev/null || ls plans/I[N]-log.md 2>/dev/null
 ```
 
 - **Log file exists with `Workflow: resolve`:** This was a `/resolve`-path issue — no spec or progress file is expected. Skip progress file checks and spec-conformance checks. Review for: code correctness, test coverage of the specific fix, and that PLAN.md tracking is in order. Continue.
-- **Log file exists without `Workflow: resolve`:** Progress file is missing for a spec-path feature — warn the user per AGENT.md and do not proceed.
+- **Log file exists without `Workflow: resolve`:** Progress file is missing for a spec-path feature — warn the user per AGENTS.md and do not proceed.
 - **No log file either:** No process artifacts found at all — warn the user and do not proceed.
 
 ## Step 0.5 — First review or re-review?

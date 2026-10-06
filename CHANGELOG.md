@@ -5,6 +5,38 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v33 (2026-10-06)
+
+### Summary
+
+The implementor rules file was named `AGENT.md`, but Codex auto-loads `AGENTS.md`, so Codex only saw the
+rules because `./implement` named the old file in its prompt. The file is now `AGENTS.md` everywhere.
+
+### What changed
+
+- **`skeleton/AGENT-template.md`** renamed to **`skeleton/AGENTS-template.md`**; its heading is `# AGENTS.md`.
+- **`scripts/implement`, `implement.md`, `complete.md`, `review.md`, `spec.md`, `design.md`,
+  `design-review.md`, `upgrade-workflow.md`** — every reference to the rules file names `AGENTS.md`.
+- **`configs/.aider.conf.yml`, `configs/.gemini/settings.json`** — load `AGENTS.md` (symlinked, so live).
+- **`scripts/setup.sh`, `README.md`, `skeleton/CLAUDE-template.md`, `skeleton/WORKFLOW-template.md`,
+  `skeleton/snippets/`** — new projects get `AGENTS.md`, and the docs name it.
+- **`upgrade-workflow.md`** — new Step 1a performs the rename in existing projects, backing up any existing
+  `AGENTS.md` as `AGENTS.md.bak`.
+- **Not changed:** the optional `PROJECT_AGENT.md` keeps its name.
+
+### What existing projects need to do
+
+1. Run `/upgrade-workflow`; Step 1a renames `AGENT.md` to `AGENTS.md`, keeps any existing `AGENTS.md` as
+   `AGENTS.md.bak`, and updates the project's own references. Manually: `cp AGENTS.md AGENTS.md.bak` (if it
+   exists), `git mv -f AGENT.md AGENTS.md`, then fix references in `CLAUDE.md` and `WORKFLOW.md`.
+2. Review and delete `AGENTS.md.bak`; do not commit it.
+3. Set `.workflow-version` to 33.
+
+Command and script changes are live through the symlinks, so `./implement` expects `AGENTS.md` immediately.
+Do the rename before the next `./implement` run.
+
+---
+
 ## v32 (2026-10-06)
 
 ### Summary

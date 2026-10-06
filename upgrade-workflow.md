@@ -69,13 +69,43 @@ Read `.workflow-version` and the template `VERSION` file to confirm the version 
 
 ---
 
+## Step 1a — Rename `AGENT.md` to `AGENTS.md` (project version below 33)
+
+From v33 the implementor rules file is `AGENTS.md` (the name Codex auto-loads), and the skeleton is
+`skeleton/AGENTS-template.md`. CHANGELOG entries from v32 and earlier still say `AGENT.md` and
+`AGENT-template.md`; read those as `AGENTS.md` and `AGENTS-template.md`.
+
+Skip this step if the project has no `AGENT.md` (already migrated, or a new project).
+
+1. If `AGENTS.md` already exists (for example a hand-made copy), keep it as a backup first:
+   ```bash
+   cp AGENTS.md AGENTS.md.bak
+   ```
+   If `AGENTS.md.bak` already exists, stop and ask the user; do not overwrite it.
+2. Rename, replacing any existing `AGENTS.md`:
+   ```bash
+   git mv -f AGENT.md AGENTS.md      # plain mv if the project is not a git repo or AGENT.md is untracked
+   ```
+3. Update references to the old name in the project's own files (`CLAUDE.md`, `WORKFLOW.md`, `DESIGN.md`,
+   `PROJECT_AGENT.md`, and any other doc that names it). Match `AGENT.md` only when it is not part of
+   `PROJECT_AGENT.md`; the optional `PROJECT_AGENT.md` file keeps its name. Show the user the list of
+   edits before applying them.
+4. If a backup was made, tell the user to compare `AGENTS.md.bak` with the new `AGENTS.md`, fold in anything
+   that should survive, then delete the backup. Do not commit `AGENTS.md.bak`.
+
+The `.aider.conf.yml` and `.gemini/settings.json` entries are symlinks into the template and already name
+`AGENTS.md`. `./implement` now tells every tool to read `AGENTS.md`, so it fails to find the rules until this
+step is done.
+
+---
+
 ## Step 1 — Process each skeleton file change
 
 For each item listed under "Skeleton file changes" in the relevant CHANGELOG entries, do the following:
 
 ### Read the current state of both files
 
-1. Read the **project's current file** (e.g. `WORKFLOW.md`, `AGENT.md`, `.implement.conf`)
+1. Read the **project's current file** (e.g. `WORKFLOW.md`, `AGENTS.md`, `.implement.conf`)
 2. Read the **current skeleton template file** (e.g. `workflow_template/skeleton/WORKFLOW-template.md`)
 3. Read the CHANGELOG description of what changed
 
@@ -114,9 +144,9 @@ If declined: note it as skipped and continue to the next item.
 
 Tell the user specifically what's ambiguous:
 ```
-File: AGENT.md
+File: AGENTS.md
 Change: CHANGELOG says "add project-specific boundaries section"
-Issue: Your AGENT.md has already been customized with project-specific boundaries
+Issue: Your AGENTS.md has already been customized with project-specific boundaries
        that differ from the skeleton. I cannot safely auto-apply without risk of
        overwriting your customizations.
 

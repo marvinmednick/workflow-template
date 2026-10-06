@@ -68,7 +68,7 @@ If unexpected failures are found: stop and report them. Do not proceed until the
 **For features (F[N]): check the progress file first.**
 
 Read `plans/F[N]-progress.md`:
-- If it does **not exist**: warn the user — it should always be created by the implementor (per AGENT.md). Do not proceed until this is resolved.
+- If it does **not exist**: warn the user — it should always be created by the implementor (per AGENTS.md). Do not proceed until this is resolved.
 - If Status ≠ `Complete`: this is a **blocking** issue — the implementor has not finished. Stop and report.
 - If Issues is non-empty: flag each item before proceeding — these may represent deviations or unresolved problems that affect the commit.
 

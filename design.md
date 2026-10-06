@@ -169,7 +169,7 @@ Glossary: [authoritative load-bearing vocabulary — one line per term]
 the existing behaviour and layout. Read the existing code and the running system (not summaries) and
 list every screen and function in scope in the parity matrix.
 
-The first time a project's design work produces this matrix, its `AGENT.md`/`PROJECT_AGENT.md` needs the
+The first time a project's design work produces this matrix, its `AGENTS.md`/`PROJECT_AGENT.md` needs the
 matching implementor-side rules: copy `skeleton/snippets/legacy-parity.md` into that project's
 `PROJECT_AGENT.md` (creating it if it doesn't exist yet) if it isn't there already. Not yet automatic —
 check manually for now.

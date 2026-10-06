@@ -11,7 +11,7 @@ ID: `plans/F[N].[P]-plan-approved.md`, `-progress.md`, `-review.md`. Refuse if t
 `**Phases:** N` and the ID has no phase, if the phase's detail is `<!-- detail: pending -->`, or if
 phase P-1 is not closed (ledger `Status: Passed` and a `Phase P-1 closed` entry in `plans/F[N]-log.md`).
 Add to the agent prompt: "Implement phase [P] only; stop when it is done and end with the
-End-of-Run Report from AGENT.md."
+End-of-Run Report from AGENTS.md."
 
 Find the spec file:
 ```bash
@@ -50,7 +50,7 @@ You will pass this exact command to the implementation agent.
 Use the Agent tool to launch a fresh implementor agent with this prompt (substitute actual values for `[ID]`, `[spec-path]`, `[TEST_CMD]`):
 
 ```
-You are the implementation agent for this project. Read AGENT.md and CODING.md in full before making any changes to code.
+You are the implementation agent for this project. Read AGENTS.md and CODING.md in full before making any changes to code.
 
 Your task: implement `[spec-path]`.
 
@@ -58,7 +58,7 @@ Your task: implement `[spec-path]`.
 The approved implementation plan is at `plans/[ID]-plan-approved.md`. Follow it exactly.
 
 Before writing any code, rehydrate state from disk — the SAME procedure whether this is a fresh start,
-a resume, or a review fix pass (see "Session Start" in AGENT.md). Do not branch on which one you think
+a resume, or a review fix pass (see "Session Start" in AGENTS.md). Do not branch on which one you think
 it is:
 1. Read `plans/[ID]-progress.md` to orient — where the last session stopped and what was in flight.
 2. Run `git status --short` and `git diff` to confirm that bookmark against the actual tree. This is a
@@ -66,7 +66,7 @@ it is:
 3. ALWAYS check `plans/[ID]-review.md` (the review ledger), regardless of whether you think this is a
    fix pass. If it exists, its `Open`/`Reopened` findings are part of your to-do list — do NOT
    conclude "already implemented, nothing to do" and stop. Read the "Review Ledger Protocol" section
-   of AGENT.md and follow it: address every `Open`/`Reopened` finding (blocking AND non-blocking;
+   of AGENTS.md and follow it: address every `Open`/`Reopened` finding (blocking AND non-blocking;
    defer a non-blocking one only when genuinely too costly, noting the reason in its Resolution for the
    reviewer to set `Deferred`); for each, fill the `Resolution (implementor)` field and set its Status
    to `Addressed`. Never edit a reviewer-owned field and NEVER set `Verified`/`Deferred`/`Wontfix` —
@@ -81,10 +81,10 @@ never rewrite or re-emit the full file list.
 When every plan item is complete AND no finding reads `Open`/`Reopened`:
 - Run `[TEST_CMD]`. If it fails, fix the failures and rerun to confirm. If the initial run passes,
   do not run the full suite again — a redundant second full run is not required.
-- Clear the "Before Reporting Done" self-check in AGENT.md: reconcile the progress bookmark so no stale
+- Clear the "Before Reporting Done" self-check in AGENTS.md: reconcile the progress bookmark so no stale
   trailing entry survives, confirm `git status` matches what you'll report, no open findings, tests pass.
 
-End with the End-of-Run Report defined in AGENT.md (it replaces the list below when both apply).
+End with the End-of-Run Report defined in AGENTS.md (it replaces the list below when both apply).
 
 Report back:
 - Every file modified or created

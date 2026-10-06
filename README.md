@@ -44,7 +44,7 @@ Then copy and fill in the project-specific skeleton files:
 ```bash
 cp <your-chosen-path>/skeleton/.implement.conf       .implement.conf
 cp <your-chosen-path>/skeleton/WORKFLOW-template.md  WORKFLOW.md
-cp <your-chosen-path>/skeleton/AGENT-template.md     AGENT.md
+cp <your-chosen-path>/skeleton/AGENTS-template.md     AGENTS.md
 cp <your-chosen-path>/skeleton/CODING-template.md    CODING.md
 cp <your-chosen-path>/skeleton/DESIGN-template.md    DESIGN.md
 cp <your-chosen-path>/skeleton/REVIEW-template.md    REVIEW.md
@@ -113,7 +113,7 @@ project repo and are never overwritten by `update-workflow`:
 |------|---------|
 | `.implement.conf` | Implementor tool, model, test command, file path pattern |
 | `WORKFLOW.md` | Project workflow guide — commands, use cases, file reference |
-| `AGENT.md` | Behavioral rules for the implementor tool |
+| `AGENTS.md` | Behavioral rules for the implementor tool |
 | `CODING.md` | Coding conventions and patterns |
 | `DESIGN.md` | Architecture and design reference |
 | `REVIEW.md` | Review checklist (read by `/review-impl` and `/review`) |

@@ -68,7 +68,7 @@ Check each document for needed updates:
 | `DESIGN.md` | Architecture, key patterns, or data model changed |
 | `CODING.md` | A mandatory code pattern was added, changed, or removed |
 | `docs/design/ui-guidelines.md` | A visual or interaction pattern was added or changed |
-| `AGENT.md` | An implementor behavioral rule changed (rare) |
+| `AGENTS.md` | An implementor behavioral rule changed (rare) |
 | `docs/design-history.md` | **Always when a design decision was made** — log what changed and why |
 | `SESSION_NOTES.md` | **Always** — log the finding and outcome in the current session |
 
