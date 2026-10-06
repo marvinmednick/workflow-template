@@ -53,6 +53,10 @@ known cases (e.g. `legacy-parity.md`) to copy in when the need arises.
 1. **No `it.skip` or `describe.skip` in delivered code.** Every spec-defined test must pass. If a test is hard to write, that's a signal to fix the approach — not skip the test. If you genuinely cannot make a test pass, report it as a blocker in `plans/F[N]-progress.md` Issues section rather than skipping it.
 2. **No hardcoded sleeps to work around timing.** If a test needs `setTimeout` delays to pass, the underlying issue is leaked state or missing cleanup — fix that instead.
 3. **Timer cleanup is mandatory.** Any test that calls `jest.useFakeTimers()` must have a corresponding `jest.useRealTimers()` in `afterEach` (not just inline at the end of the test). If the test throws before inline cleanup, fake timers leak to subsequent tests.
+4. **Every test must be able to fail.** No placeholder assertions (a function is callable, a temporary path exists), no assertion on a value the test computes itself, no test whose precondition is never reached.
+5. **Write every test the spec or plan names.** If you rename one, record the old and new name in `plans/F[N]-progress.md`. `./check-spec-tests F[N]` lists names the tree does not define.
+6. **No stand-in data.** Never record placeholder or zero results to make a tool look as if it works; report the unimplemented part under Issues and stop.
+7. **Run the project gate** (`GATE_CMD` in `.implement.conf`, for example `make ci`) after the test run and before reporting done. A passing test run alone is not completion.
 
 ## Session Start — Rehydrate State From Disk
 

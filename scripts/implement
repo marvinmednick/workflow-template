@@ -40,6 +40,7 @@
 #   TEST_CMD=npm --prefix client test -- --watchAll=false
 #   PREFLIGHT_CMD=curl -sf http://localhost:8000/health/   # optional; must succeed before tests run
 #   PREFLIGHT_HELP=Start the stack first: ./dsc.sh start all  # optional; shown when preflight fails
+#   GATE_CMD=make ci   # optional; the project's full check (lint, format, strict checks, tests); must exit 0 before the implementor reports done
 #   KNOWN_FILE=client/known-test-failures.txt
 #   SPEC_FILE_PATTERN=client|supabase/migrations
 #   AIDER_REFERENCE_FILE=client/components/__tests__/MyFile-test.tsx   # optional
@@ -110,6 +111,7 @@ SPEC_FILE_PATTERN=""
 AIDER_REFERENCE_FILE=""
 PREFLIGHT_CMD=""
 PREFLIGHT_HELP=""
+GATE_CMD=""
 
 if [[ -f "$CONFIG_FILE" ]]; then
   CONFIG_TOOL=$(grep '^tool=' "$CONFIG_FILE" | head -1 | sed 's/^tool=//' | tr -d '[:space:]' || true)
@@ -119,6 +121,7 @@ if [[ -f "$CONFIG_FILE" ]]; then
   SPEC_FILE_PATTERN=$(grep '^SPEC_FILE_PATTERN=' "$CONFIG_FILE" | head -1 | sed 's/^SPEC_FILE_PATTERN=//' | tr -d '[:space:]' || true)
   PREFLIGHT_CMD=$(grep '^PREFLIGHT_CMD=' "$CONFIG_FILE" | head -1 | sed 's/^PREFLIGHT_CMD=//' || true)
   PREFLIGHT_HELP=$(grep '^PREFLIGHT_HELP=' "$CONFIG_FILE" | head -1 | sed 's/^PREFLIGHT_HELP=//' || true)
+  GATE_CMD=$(grep '^GATE_CMD=' "$CONFIG_FILE" | head -1 | sed 's/^GATE_CMD=//' || true)
   AIDER_REFERENCE_FILE=$(grep '^AIDER_REFERENCE_FILE=' "$CONFIG_FILE" | head -1 | sed 's/^AIDER_REFERENCE_FILE=//' | tr -d '[:space:]' || true)
 fi
 
@@ -327,8 +330,14 @@ PREFLIGHT_NOTE=""
 if [[ -n "$PREFLIGHT_CMD" ]]; then
   PREFLIGHT_NOTE=" Before your final test run, run the preflight check '${PREFLIGHT_CMD}'. If it fails, it may be your sandbox blocking a local connection, not the service: request elevated execution for that same command and retry once. Only if the retry also fails or is refused, stop and tell the user${PREFLIGHT_HELP:+ (${PREFLIGHT_HELP})}. Never skip or deselect tests to get around it."
 fi
+GATE_NOTE=""
+if [[ -n "$GATE_CMD" ]]; then
+  GATE_NOTE=" After the final test run, run the project gate '${GATE_CMD}' (lint, format, strict checks). It must exit 0 before you report done; a passing test run alone is not completion. Fix what it reports without lint suppressions (noqa and the like) or skipped checks, rerun it, and paste its final lines. If your own fix pass changes files, run it again."
+fi
+# Rules the reviewer keeps having to enforce; stated up front.
+QUALITY_NOTE=" Every test you write must be able to fail: no placeholder assertions (for example asserting that a function is callable or that a temporary path exists), no assertion on a value the test computes itself, and no test whose precondition is never reached. Write every test the spec or plan names; if you rename one, record the old and new name in the progress file. Never record placeholder or zero data to make a tool or script look as if it works: if part of it is not implemented, say so under Issues in the progress file and stop. Tests must not write inside the repository, and never leave or restore a generated file to make a run pass."
 REPORT_NOTE=" End your final message with the End-of-Run Report in the exact format defined in AGENT.md, including the exact next steps for the user."
-SUFFIX="${PHASE_NOTE}${PREFLIGHT_NOTE}${REPORT_NOTE}"
+SUFFIX="${PHASE_NOTE}${PREFLIGHT_NOTE}${GATE_NOTE}${QUALITY_NOTE}${REPORT_NOTE}"
 PLAN_SUFFIX="${PHASE_NOTE}"
 
 # Capture test baseline before implementation begins (skip during plan-only mode)

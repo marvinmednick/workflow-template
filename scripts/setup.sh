@@ -37,7 +37,7 @@ done
 
 echo ""
 echo "Linking scripts..."
-for script in implement check-tests check-workflow create-feature-issue.sh gh-aliases.sh update-workflow verify-links verify-repo; do
+for script in implement check-tests check-spec-tests check-workflow create-feature-issue.sh gh-aliases.sh update-workflow verify-links verify-repo; do
   ln -sf "$TEMPLATE/scripts/$script" "./$script"
   chmod +x "./$script"
   echo "  linked $script"

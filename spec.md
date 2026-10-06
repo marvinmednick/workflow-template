@@ -293,6 +293,13 @@ List the specific test cases the implementor must implement. For each test, spec
 - The test description (the `it('...')` string)
 - What to assert
 
+Write each test name as a backtick-quoted identifier (for example `test_absent_file_means_no_overrides`):
+`./check-spec-tests` reads those names and reports the ones the working tree does not define. For each test also
+say which behaviour, if broken, it must catch; a test that cannot fail is not a test.
+
+Keep a phase to what one implementor pass can hold: if a phase lists more than about 30 tests or 15 files,
+split it. Large binding specs are where tests get skipped and stubs appear.
+
 Always include tests for:
 - Each item in Acceptance Criteria that can be verified programmatically
 - Any mandatory test cases listed under "Mandatory Test Cases" in CODING.md

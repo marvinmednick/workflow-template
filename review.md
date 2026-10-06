@@ -21,7 +21,7 @@ Check whether a progress file exists:
 ls plans/F[N]-progress.md 2>/dev/null || ls plans/I[N]-progress.md 2>/dev/null
 ```
 
-**If found** — this is a spec/implement-path feature. Read it as a hint, then:
+**If found** — this is a spec/implement-path feature. Read it as a hint, then (and run `./check-spec-tests` for the completeness check below):
 - **Judge completeness against the code, not the log.** Cross-check the spec's "Files to Modify" and
   "New Files" against the actual working tree (`git status` / `git diff`). If a required change is
   genuinely missing or unimplemented, raise it as a finding (blocking if it blocks the feature) — do
@@ -87,6 +87,28 @@ Before reading REVIEW.md, confirm the test suite passes. Use `--if-stale` to ski
 ```
 
 If the saved results are still fresh (no source changes since the last run; edits to the work log, plan, ledger and spec files do not count), `check-tests` reports the prior result without re-running. If anything changed since the last run, it runs in full. If unexpected failures are found, stop and report them before continuing the review.
+
+**Gate, test names, test strength, and a real run** (every round; all four are the reviewer's own checks,
+never the implementor's report)
+
+1. **The project gate.** If `.implement.conf` sets `GATE_CMD` (for example `make ci`), run it and record the
+   result in the ledger's round line. A non-zero exit is a blocking finding on its own. A passing test run
+   does not stand in for it: lint and format failures were reported "verification complete" on three
+   phases of one feature.
+2. **Named tests exist.** Run `./check-spec-tests F[N].[P]` (or `F[N]`). Every name it lists as missing is a
+   finding unless the progress file maps it to a renamed test that exists. Judge the mapping, not the count.
+3. **Tests can fail.** For each new test file, look for tests that cannot fail: placeholder assertions
+   (`callable`, `exists`), assertions on a value the test computed itself, a precondition that is never
+   reached (the code exits earlier, so "file is absent" is trivially true), and assertions weaker than the
+   behaviour the spec names. For the two or three highest-risk behaviours, prove a test would catch a defect:
+   run the test against a deliberately broken copy of the code (a scratch copy or probe outside the tree
+   under review; never edit the tree and never leave a probe behind). A test that stays green when its
+   behaviour is broken is a blocking finding.
+4. **Run the new thing once, for real.** For a tool, script, command or integration the tests drive only
+   through fakes, run it for real once in round 1, bounded and read-only (for example a zero-experiment or
+   dry-run mode, a `--limit`, or one request against the running stack), and record what happened. Tests
+   written against fakes prove the fake. Do this before reading the code in detail: a stub, a wrong host or
+   a missing credential shows up in minutes.
 
 **Project-Specific Checklist**
 

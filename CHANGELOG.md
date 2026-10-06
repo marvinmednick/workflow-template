@@ -5,6 +5,52 @@ Symlinked files (commands, scripts, stubs) auto-update — only skeleton file ch
 
 ---
 
+## v32 (2026-10-06)
+
+### Summary
+
+Across one feature (daystrom-patent-analysis F25: 8, 3 and 3+ review rounds for its phases 2, 3 and 4) the
+same findings recurred, and each was a check that the implementor's report or the reviewer's first pass did
+not cover. Tests that cannot fail (placeholder assertions, an assertion on a file that never exists, a test
+that checks its own list comprehension) let real bugs through a green suite. The implementor ran only the
+test command and reported "verification complete" while lint failed, twice. A tool was delivered as a stub
+that recorded all-zero results. 27 of 38 and 30 of 44 named tests were missing at the first review.
+Behaviour that only appears against the running system was first seen by the reviewer, late.
+
+### What changed
+
+- **`scripts/implement`** — new optional `.implement.conf` key `GATE_CMD` (the project's full check, for
+  example `make ci`). When set, the implementor's prompt requires it to exit 0 after the final test run and
+  forbids lint suppressions. The prompt also now states four rules up front: every test must be able to fail,
+  write every named test (record renames in the progress file), no placeholder or zero data to make a tool
+  look as if it works, and tests must not write inside the repository.
+- **`scripts/check-spec-tests`** (new) — `./check-spec-tests F[N].[P]` lists the `test_` names in the spec's
+  `### Tests to Write` (backtick-quoted) that no `def test_` under `TEST_DIRS` (default `tests`) defines. Exit 1
+  when any are missing. Python-style tests only; a spec that names none exits 0.
+- **`review.md`** — a new block before the project checklist, run every round: the project gate
+  (`GATE_CMD`); named tests exist (`./check-spec-tests`); tests can fail (read for placeholders and
+  self-referential assertions, and prove the highest-risk behaviours against a broken scratch copy, never in
+  the tree); run the new tool or command once for real, bounded and read-only, in round 1.
+- **`spec.md`** — `### Tests to Write` names tests as backtick-quoted identifiers, says which behaviour each
+  must catch, and advises splitting a phase beyond about 30 tests or 15 files.
+- **`skeleton/AGENT-template.md`** — Test Rules 4 to 7 (the rules above and the gate), for new projects.
+- **`scripts/setup.sh`, `scripts/verify-links`** — link and check `check-spec-tests`.
+
+### What existing projects need to do
+
+1. Link the new script: `ln -s <template>/scripts/check-spec-tests ./check-spec-tests` (or re-run `setup.sh`;
+   `verify-links` reports it missing until then).
+2. Optional but recommended: add `GATE_CMD=<your full check>` (for example `GATE_CMD=make ci`) to
+   `.implement.conf`, and `TEST_DIRS=tests` if your tests live elsewhere.
+3. Optional: copy Test Rules 4 to 7 from `skeleton/AGENT-template.md` into the project's `AGENT.md`. The
+   `implement` prompt already carries them, so this only helps tools that read `AGENT.md` alone.
+4. Set `.workflow-version` to 32.
+
+Command and script changes are live through the symlinks. Not changed: `/review-plan`; consider asking it to
+check that a plan names every test and says how the gate is run.
+
+---
+
 ## v31 (2026-10-05)
 
 ### Summary
