@@ -19,3 +19,6 @@
 /.last-test-output.txt
 __pycache__/
 .pytest_cache/
+
+# generated per-phase spec slices written by ./implement
+.implement-cache/

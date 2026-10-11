@@ -87,8 +87,8 @@ Skip this step if the project has no `AGENT.md` (already migrated, or a new proj
    git mv -f AGENT.md AGENTS.md      # plain mv if the project is not a git repo or AGENT.md is untracked
    ```
 3. Update references to the old name in the project's own files (`CLAUDE.md`, `WORKFLOW.md`, `DESIGN.md`,
-   `PROJECT_AGENT.md`, and any other doc that names it). Match `AGENT.md` only when it is not part of
-   `PROJECT_AGENT.md`; the optional `PROJECT_AGENT.md` file keeps its name. Show the user the list of
+   the project-owned rules file, and any other doc that names it). Match `AGENT.md` only as a whole file
+   name; the project-owned rules file is never renamed. Show the user the list of
    edits before applying them.
 4. If a backup was made, tell the user to compare `AGENTS.md.bak` with the new `AGENTS.md`, fold in anything
    that should survive, then delete the backup. Do not commit `AGENTS.md.bak`.

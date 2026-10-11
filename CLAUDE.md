@@ -69,7 +69,7 @@ Claude's responsibilities are **architecture, design, planning, and code review*
 - Use `/spec` to produce a structured implementation spec before handing off to an implementor
 - Use `/review-impl` to review implementation output against the spec and architectural principles
 - `CODING.md` is the coding reference all implementors use — keep it up to date when patterns change
-- `AGENTS.md` contains behavioral rules for all implementation agents; `PROJECT_AGENT.md` (optional, may not exist) holds this project's own additional rules beyond the shared template
+- `AGENTS.md` contains behavioral rules for all implementation agents; `PROJECT_AGENTS.md` is required and holds this project's own additional rules beyond the shared template
 
 ---
 
@@ -106,7 +106,7 @@ See `WORKFLOW.md` for the full process guide.
 | `specs/` | Feature implementation specs |
 | `plans/` | Implementation plans and progress logs |
 | `AGENTS.md` | Rules for the implementation agent |
-| `PROJECT_AGENT.md` | This project's own implementor rules beyond the shared template (optional) |
+| `PROJECT_AGENTS.md` | This project's required, project-owned implementor rules beyond the shared template |
 | `CODING.md` | Coding conventions |
 | `REVIEW.md` | Review checklist |
 | `.workflow-version` | Tracks which template version this project is at |

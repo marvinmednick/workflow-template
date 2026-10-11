@@ -22,37 +22,18 @@ You DO NOT redesign architecture unless explicitly told. If implementing the spe
 10. **Never refactor unrelated code** — if you notice a problem outside the spec's scope, report it; don't fix it.
 11. **Ask before large structural changes** — if the spec is ambiguous about structure, ask rather than assume.
 
-<!-- PROJECT-SPECIFIC: Add any additional rules for your tech stack here. Example for React Native:
-12. **Every modal or full-screen view must use safe area insets and be scrollable** — see CODING.md for details.
--->
-
-## Project-Specific Architecture Boundaries
-
-Do not make the following changes without an explicit spec section covering them:
-
-<!--
-Replace this section with your project's specific off-limits boundaries. Examples:
-- **No new root-level providers** — the provider tree in app/_layout.tsx is fixed until a spec says otherwise
-- **No schema changes beyond what the spec's migration file specifies** — never add columns speculatively
-- **No changes to [core system]** — [file] is off-limits unless the spec lists it in Files to Modify
--->
-
-- [Add project-specific boundaries here]
-
 ## Project-Specific Rules
 
-If this repo has a `PROJECT_AGENT.md`, read it too. It holds behavioral rules specific to this project
-that don't belong in this shared template — the kind of thing that comes up mid-project rather than at
-setup time (a legacy-system comparison workflow, a domain-specific safety rule, anything that would be
-irrelevant noise in every other project using this template). It does not exist until this project
-actually needs one; `skeleton/snippets/` in the workflow template holds reusable starting content for
-known cases (e.g. `legacy-parity.md`) to copy in when the need arises.
+Read `PROJECT_AGENTS.md` in full before making changes. It contains rules specific to this project.
+On project specifics, it wins over this file and may tighten its rules, but it may not weaken the
+Review Ledger Protocol or Checks Are Not Yours To Change. `skeleton/snippets/` in the workflow template
+holds reusable starting content for known cases (e.g. `legacy-parity.md`).
 
 ## Test Rules
 
-1. **No `it.skip` or `describe.skip` in delivered code.** Every spec-defined test must pass. If a test is hard to write, that's a signal to fix the approach — not skip the test. If you genuinely cannot make a test pass, report it as a blocker in `plans/F[N]-progress.md` Issues section rather than skipping it.
-2. **No hardcoded sleeps to work around timing.** If a test needs `setTimeout` delays to pass, the underlying issue is leaked state or missing cleanup — fix that instead.
-3. **Timer cleanup is mandatory.** Any test that calls `jest.useFakeTimers()` must have a corresponding `jest.useRealTimers()` in `afterEach` (not just inline at the end of the test). If the test throws before inline cleanup, fake timers leak to subsequent tests.
+1. **No skipped tests in delivered code.** Every spec-defined test must pass. If a test is hard to write, that's a signal to fix the approach — not skip the test. If you genuinely cannot make a test pass, report it as a blocker in `plans/F[N]-progress.md` Issues section rather than skipping it.
+2. **No hardcoded sleeps to work around timing.** If a test needs sleep or delay calls to pass, the underlying issue is leaked state or missing cleanup — fix that instead.
+3. **Timers, mocks, and state must be cleaned up in teardown, not inline.** If a test throws before cleanup, leaked state can affect subsequent tests.
 4. **Every test must be able to fail.** No placeholder assertions (a function is callable, a temporary path exists), no assertion on a value the test computes itself, no test whose precondition is never reached.
 5. **Write every test the spec or plan names.** If you rename one, record the old and new name in `plans/F[N]-progress.md`. `./check-spec-tests F[N]` lists names the tree does not define.
 6. **No stand-in data.** Never record placeholder or zero results to make a tool look as if it works; report the unimplemented part under Issues and stop.
@@ -306,7 +287,7 @@ or weakened assertions, and no code that only makes a measurement agree. The onl
 are the ones the plan lists by file and the spec or the review ledger names. If you believe a check is
 wrong, or a difference is legitimate, stop on that item and report it under Open questions with the
 evidence; the reviewer decides. Everything you change in a test, harness or expectation file must appear in
-the plan. Projects may name protected files here (for example a reviewer-owned list of approved differences).
+the plan. Projects may name protected files in `PROJECT_AGENTS.md` (for example a reviewer-owned list of approved differences).
 
 ## Tests Before Reporting
 
@@ -317,5 +298,5 @@ elevated execution for that same command and retry once. Only if the retry also 
 refused, **stop and tell the user what to start** — never skip, deselect or mark tests to get around it.
 Suites that cannot run belong under "Suites not run, and why" and make the result `BLOCKED`, not
 `COMPLETE`. Where the project provides wrapper scripts for tests, preflight or tools (a `scripts/`
-directory named in `AGENTS.md`), use them instead of composing your own command lines: a wrapper is one
+directory named in `PROJECT_AGENTS.md`), use them instead of composing your own command lines: a wrapper is one
 stable command the user can approve once, while a new compound command asks for approval every time.
