@@ -10,7 +10,7 @@ it rather than copying files. Edit a command here, and every project picks it up
 no syncing or per-project updates needed.
 
 ```
-*.md                  # Generic workflow commands (symlinked as commands/ in each project)
+commands/              # Generic workflow commands (symlinked as commands/ in each project)
 scripts/              # Shell scripts (symlinked into each project root)
 configs/              # Tool config files (symlinked into each project root)
 claude-stubs/         # Claude Code command stubs (symlinked into .claude/commands/) — also the manifest for Codex skills
@@ -83,12 +83,12 @@ scripts/gen-codex-skills.sh --check  # drift check (also part of ./verify-repo)
 
 ## Improving shared commands
 
-Commands in `commands/` are symlinks, so editing one means you're editing the file
-directly in the template clone. Commit and push from there:
+In a project, `commands/` holds symlinks, so editing one means you're editing the file
+directly in the template clone's `commands/`. Commit and push from there:
 
 ```bash
 cd <your-chosen-path>
-git add <name>.md
+git add commands/<name>.md
 git commit -m "improve: ..."
 git push
 ```

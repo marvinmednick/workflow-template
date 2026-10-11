@@ -26,6 +26,12 @@ command_files() {
   for n in $(stub_names); do stub_target "$n"; done | sort -u
 }
 
+# True when the current directory is the template itself, where commands/ holds the real files
+# and must never be replaced by links to itself
+in_template_root() {
+  [[ "$(realpath .)" == "$(realpath "$TEMPLATE")" ]]
+}
+
 # Create/refresh .agents/skills/<name>/SKILL.md symlinks to the template's codex-skills/
 link_codex_skills() {
   local n

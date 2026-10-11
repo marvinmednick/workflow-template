@@ -29,11 +29,15 @@ done
 
 echo ""
 echo "Linking commands/..."
-mkdir -p commands
-for cmd in $(command_files); do
-  ln -sf "$TEMPLATE/$cmd" "commands/$cmd"
-  echo "  linked commands/$cmd"
-done
+if in_template_root; then
+  echo "  skipped (this is the template: commands/ holds the real files)"
+else
+  mkdir -p commands
+  for cmd in $(command_files); do
+    ln -sf "$TEMPLATE/commands/$cmd" "commands/$cmd"
+    echo "  linked commands/$cmd"
+  done
+fi
 
 echo ""
 echo "Linking scripts..."

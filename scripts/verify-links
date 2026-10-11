@@ -47,7 +47,11 @@ check_link() {
 
 echo "=== Commands ==="
 for cmd in $(command_files); do
-  check_link "commands/$cmd" "$TEMPLATE/$cmd"
+  if in_template_root; then
+    [[ -f "commands/$cmd" && ! -L "commands/$cmd" ]] && { echo "  ✓ commands/$cmd (real file)"; OK=$((OK + 1)); } || { echo "  ✗ commands/$cmd missing"; ISSUES+=("commands/$cmd missing"); }
+    continue
+  fi
+  check_link "commands/$cmd" "$TEMPLATE/commands/$cmd"
 done
 
 echo ""
