@@ -62,3 +62,10 @@
 - **Result:** Passed — all blocking resolved; non-blocking verified
 - **Tests:** 47/47 passed
 - **Ledger:** plans/F2.3-review.md
+
+## 2026-10-11 — Phase 3 closed
+- **Commit:** 6f5160d `feat(F2.3): v34 migration (upgrade-workflow Step 1b), changelog and version bump`
+- **Tests:** 47/47 passed; GATE_CMD, verify-links, check-spec-tests (9/9) and check-workflow (v34) clean
+- **Review:** plans/F2.3-review.md Passed in round 2 (4 findings, all verified)
+- **Manual verification:** dry-runs on scratch copies (patent-analysis, literal v33 skeleton, daystrom-patent-analysis, second pass) recorded in plans/F2.3-progress.md and re-read by the reviewer; the user's own check that `./implement` prompts name both files in a migrated project is still open
+- **Next:** `/complete F2` closes the feature and issue #2
