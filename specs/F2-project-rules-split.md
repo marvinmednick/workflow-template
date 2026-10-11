@@ -182,29 +182,112 @@ defect) and note in the progress file that it failed.
 ---
 
 ## Phase 2 — Tool loading, setup and repo check
-<!-- detail: pending -->
+<!-- detail: written 2026-10-11 -->
 
 ### Goal
 Make `PROJECT_AGENTS.md` reach every implementor tool as reliably as `AGENTS.md`, stop `./implement` when it is
 missing, and make new projects get it.
 
 ### Entry criteria
-Phase 1 closed: `skeleton/PROJECT_AGENTS-template.md` exists and root `PROJECT_AGENTS.md` exists (so `./implement`
-works in this repo after the hard stop lands).
+Phase 1 closed (`plans/F2.1-review.md` `Status: Passed` and a `Phase 1 closed` entry in `plans/F2-log.md`, written
+by `/complete F2.1`): `skeleton/PROJECT_AGENTS-template.md` exists and root `PROJECT_AGENTS.md` exists (so
+`./implement` works in this repo after the hard stop lands).
 
 ### Acceptance Criteria
-- `configs/.aider.conf.yml` `read:` and `configs/.gemini/settings.json` `context.fileName` include
-  `PROJECT_AGENTS.md`; the JSON parses.
-- Every prompt in `scripts/implement` that says to read `AGENTS.md` and `CODING.md` in full also names
-  `PROJECT_AGENTS.md` (codex, claude, plan-mode variants; the aider message that lists files read); the header
-  comments that say what each tool auto-loads are corrected. `commands/implement.md` line ~53 likewise.
-- `./implement` exits non-zero before launching any tool when `PROJECT_AGENTS.md` is missing, with a message that
-  names the file and says how to create it (`cp .../skeleton/PROJECT_AGENTS-template.md PROJECT_AGENTS.md`).
+- `configs/.aider.conf.yml` `read:` lists `AGENTS.md`, `PROJECT_AGENTS.md`, `CODING.md`; `configs/.gemini/settings.json`
+  `context.fileName` lists the same three; the JSON parses.
+- Every prompt in `scripts/implement` that tells the tool to read `AGENTS.md` and `CODING.md` in full also names
+  `PROJECT_AGENTS.md`: the codex and claude `CONTEXT_PREFIX` strings (which all their plan, approved-plan and
+  implement prompts use). The gemini and aider prompts do not tell the tool to read files (their configs load them),
+  so they change only through the config criterion above. The header comments that say what each tool auto-loads are
+  corrected (Codex auto-loads `AGENTS.md` only). `commands/implement.md` line ~53 likewise.
+- `./implement` exits non-zero before launching any tool, in plan mode and implement mode and for every tool, when
+  `PROJECT_AGENTS.md` is missing from the project root, with a message that names the file and says how to create it
+  (`cp <template>/skeleton/PROJECT_AGENTS-template.md PROJECT_AGENTS.md`). With the file present, behaviour is unchanged.
+- `commands/implement.md` Step 0 refuses the same way, so the Agent-spawn path has the same hard stop.
 - `scripts/setup.sh` next steps include the `cp` for `PROJECT_AGENTS.md`.
-- `scripts/verify-repo` reports a missing `PROJECT_AGENTS.md` as a warning (not a failure) in v34.
-- `commands/complete.md` and `commands/review.md` "per AGENTS.md" references are checked one by one; any that mean boundaries or
-  test rules also name the project file.
+- `scripts/verify-repo` reports a missing `PROJECT_AGENTS.md` as a warning (printed with its own marker and counted
+  separately in the summary) that does not change the exit code; every existing failure still exits non-zero.
+- `commands/complete.md` line ~71 and `commands/review.md` line ~46 ("per AGENTS.md") were checked: both mean the shared
+  progress-file rule, not boundaries or test rules, so they stay unchanged. The implementor confirms this in the
+  progress file after re-reading both lines.
 - Tests for the above are added under `tests/` (pytest); `TEST_CMD` already runs that directory.
+
+### Files to Modify
+- `configs/.aider.conf.yml` — add `PROJECT_AGENTS.md` to `read:` between `AGENTS.md` and `CODING.md`.
+- `configs/.gemini/settings.json` — add `"PROJECT_AGENTS.md"` to `context.fileName`, same order.
+- `scripts/implement`:
+  - header comments (lines ~33–35): aider and Gemini load `AGENTS.md`, `PROJECT_AGENTS.md` and `CODING.md` through
+    their configs; Codex auto-loads `AGENTS.md` only and the prompt requires the other two.
+  - hard stop: immediately after the "ID must be a feature ID…" usage check (before tool, config, spec or plan
+    handling), `[[ -f PROJECT_AGENTS.md ]]` or print the error and `exit 1`. The script has no template path yet:
+    derive it as `verify-repo` does (`TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"`)
+    so the message can print `cp "$TEMPLATE/skeleton/PROJECT_AGENTS-template.md" PROJECT_AGENTS.md`. Other wording is yours.
+  - the codex `CONTEXT_PREFIX` (line ~369) and the claude `CONTEXT_PREFIX` (line ~488) name `AGENTS.md`,
+    `PROJECT_AGENTS.md` and `CODING.md`; the codex comment (line ~365) matches.
+- `commands/implement.md` — the agent prompt line ~53 names `PROJECT_AGENTS.md`; Step 0 gains one refusal line
+  ("`PROJECT_AGENTS.md` missing from the project root: stop and tell the user to copy the skeleton template").
+- `scripts/setup.sh` — add `cp $TEMPLATE/skeleton/PROJECT_AGENTS-template.md PROJECT_AGENTS.md` to the next-steps list,
+  right after the `AGENTS-template.md` line.
+- `scripts/verify-repo` — add `check_warn` (prints `  ⚠ …`, appends to a `WARNINGS` array, no change to `ISSUES`);
+  add a "Project structure" check for `PROJECT_AGENTS.md` using it, with the fix `cp …/skeleton/PROJECT_AGENTS-template.md
+  PROJECT_AGENTS.md`; update the header comment; the summary prints the warning count and still exits 0 when only
+  warnings exist. Note in a comment that v35 turns this into `check_fail`.
+
+Checked, expected unchanged: `commands/complete.md`, `commands/review.md` (see Acceptance Criteria).
+
+### New Files
+- `tests/test_f2_loading.py` — see Tests to Write. pytest, in the style of `tests/test_template.py`; every project it
+  builds lives under `tmp_path`, fake tools are small shell scripts placed first on `PATH`.
+
+### Database / Schema Changes
+None.
+
+### Tests to Write
+File: `tests/test_f2_loading.py`. Helper (not a test): build a minimal project in `tmp_path` (`.implement.conf` with
+`tool=codex`, `TEST_CMD`, `SPEC_FILE_PATTERN`; `specs/F1-demo.md` marked **Review Level:** Light; `plans/`), put fake
+`codex`, `claude`, `gemini` and `aider` scripts on `PATH` that append their argv to a log file, and run
+`ROOT/scripts/implement` from that directory.
+- `test_aider_config_reads_project_agents` → `read:` lists the three files. Catches a config that still omits it.
+- `test_gemini_config_lists_project_agents` → JSON parses; `context.fileName` has the three. Catches a bad edit
+  that breaks the JSON or drops a file.
+- `test_implement_stops_without_project_agents` → no `PROJECT_AGENTS.md`: `./implement F1 --plan` exits non-zero,
+  output names `PROJECT_AGENTS.md` and `PROJECT_AGENTS-template.md`, fake codex log does not exist. Catches a missing
+  or late stop.
+- `test_implement_stop_covers_every_tool_and_mode` → for tool in codex, claude, gemini, aider and for plan and
+  implement modes, no `PROJECT_AGENTS.md` means non-zero and no tool log. Catches a stop applied to only one branch.
+- `test_implement_runs_when_project_agents_present` → same project plus the file: `--plan` with fake codex reaches the
+  tool (log exists). Catches a stop that fires unconditionally.
+- `test_codex_prompts_name_project_agents` → with the file present, the fake codex argv for plan mode, for an
+  approved plan (`plans/F1-plan-approved.md` present) and for plain implement each contain `PROJECT_AGENTS.md`.
+  Catches an edited prefix that misses one prompt path.
+- `test_claude_prompts_name_project_agents` → same for the fake `claude` tool. Catches the claude branch being left
+  behind.
+- `test_implement_header_comments_name_project_agents` → the three header comment lines about aider, Gemini and Codex
+  loading each contain `PROJECT_AGENTS.md`. Catches a stale header.
+- `test_implement_command_names_project_agents` → `commands/implement.md` has `PROJECT_AGENTS.md` on the line that
+  tells the agent to read `AGENTS.md` and `CODING.md`, and a refusal line for the missing file in Step 0. Catches
+  the Agent-spawn path lagging behind.
+- `test_setup_next_steps_include_project_agents_cp` → run `scripts/setup.sh` in `tmp_path`; output contains
+  `skeleton/PROJECT_AGENTS-template.md PROJECT_AGENTS.md`. Catches a missing next step.
+- `test_verify_repo_warns_when_project_agents_missing` → with a fake `gh` that succeeds and lists every required
+  label, a complete project without `PROJECT_AGENTS.md`: exit code 0, output has a warning line naming the file.
+  Catches both a silent pass and a hard failure.
+- `test_verify_repo_quiet_when_project_agents_present` → same project plus the file: exit 0 and no warning line.
+  Catches an always-warn.
+- `test_verify_repo_real_failures_still_fail` → same project without `PLAN.md` and without `PROJECT_AGENTS.md`: exit
+  non-zero. Catches warnings swallowing failures.
+
+Each test must be able to fail: run the file once against the Phase 1 tree (before the Phase 2 edits) and note in the
+progress file which tests failed.
+
+### Manual verification (user)
+- In this worktree, `./implement F2.2 --plan` still starts (root `PROJECT_AGENTS.md` exists).
+- In a scratch copy of this repo, delete `PROJECT_AGENTS.md`: `./implement F2.2 --plan` stops with the message and no
+  tool starts; `./verify-repo` there prints the warning.
+
+### Gate
+`TEST_CMD` and `GATE_CMD` (`.implement.conf`); `./verify-links` passes. Do not edit `CHANGELOG.md` or `VERSION` (phase 3).
 
 ---
 
@@ -220,7 +303,8 @@ Phases 1 and 2 closed.
 ### Acceptance Criteria
 - `commands/upgrade-workflow.md` gains Step 1b (project version below 34), implementing this migration:
   1. If `PROJECT_AGENTS.md` exists, read it; it is kept and appended to, never overwritten.
-  2. Compare the project's `AGENTS.md` with the **v33** `AGENTS-template.md`. Move to `PROJECT_AGENTS.md` only:
+  2. Compare the project's `AGENTS.md` with the **v33** `AGENTS-template.md` (the template repo's last v33 copy is
+     `git show 65f1fd1:skeleton/AGENTS-template.md`; Phase 1 has since changed the working copy). Move to `PROJECT_AGENTS.md` only:
      the "Project-Specific Architecture Boundaries" entries; Coding Rules and Test Rules the project added
      beyond the skeleton's; the content of the `PROJECT-SPECIFIC` block.
   3. Flag, but do not move or decide, anything else that differs from the v33 skeleton (reworded shared rules,

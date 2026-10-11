@@ -17,3 +17,14 @@
 - **Result:** Passed — all blocking resolved; non-blocking verified
 - **Tests:** 11/11 passed
 - **Ledger:** plans/F2.1-review.md
+
+## 2026-10-10 — Phase 2 detail written (/spec F2.2)
+- **Spec:** `specs/F2-project-rules-split.md` Phase 2 section (marker now `detail: written`)
+- **Changes to the picture:** gemini and aider prompts do not tell the tool to read files (configs load them), so only the codex and claude `CONTEXT_PREFIX` strings change; `commands/implement.md` Step 0 also refuses on a missing file; `complete.md`/`review.md` "per AGENTS.md" lines checked, unchanged.
+
+## 2026-10-10 — Phase 1 closed
+- **Commit:** 77da107 `F2.1: skeleton and docs, split project-owned rules into PROJECT_AGENTS.md (#2)` (spec/PLAN edits in 362f568)
+- **Tests:** 11/11 passed; GATE_CMD, verify-links and check-spec-tests (7/7) clean
+- **Review:** plans/F2.1-review.md Passed in round 2 (5 findings, all verified)
+- **Manual verification:** none required (no screens)
+- **Next phase:** Phase 3 note added (v33 skeleton is `git show 65f1fd1:skeleton/AGENTS-template.md`); Phase 2 detail already written. Run `./implement F2.2 --plan`.
