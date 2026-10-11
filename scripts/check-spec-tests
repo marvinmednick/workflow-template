@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# check-spec-tests: list the tests a spec names that the working tree does not define.
+#
+# Usage: ./check-spec-tests F25.4        (a phase: only that phase's "### Tests to Write")
+#        ./check-spec-tests F25          (an unphased feature: the whole spec)
+#
+# A name counts as "named by the spec" when it is a backtick-quoted identifier that starts with
+# `test_` inside a "### Tests to Write" section. It counts as "defined" when a Python-style
+# `def test_<name>` exists under TEST_DIRS (default: tests). JS-style `it('...')` descriptions are
+# not matched; for those projects the script reports nothing to check and exits 0.
+#
+# Exit 0: every named test is defined (or the spec names none). Exit 1: names are missing; they are
+# listed. Renamed tests show up as missing: the reviewer decides whether the progress file maps them.
+#
+# Configuration (environment or .implement.conf): TEST_DIRS="tests"
+
+set -euo pipefail
+
+ID="${1:-}"
+if [[ -z "$ID" ]]; then
+  echo "Usage: $0 F[N] | F[N].[P]" >&2
+  exit 2
+fi
+
+CONFIG_FILE=".implement.conf"
+TEST_DIRS="${TEST_DIRS:-}"
+if [[ -z "$TEST_DIRS" && -f "$CONFIG_FILE" ]]; then
+  TEST_DIRS=$(grep '^TEST_DIRS=' "$CONFIG_FILE" | head -1 | sed 's/^TEST_DIRS=//' || true)
+fi
+TEST_DIRS="${TEST_DIRS:-tests}"
+
+BASE="${ID%%.*}"
+PHASE=""
+[[ "$ID" == *.* ]] && PHASE="${ID#*.}"
+
+SPEC=$(ls specs/"${BASE}"-*.md 2>/dev/null | head -1 || true)
+if [[ -z "$SPEC" ]]; then
+  echo "No spec found for ${BASE} in specs/" >&2
+  exit 2
+fi
+
+# The part of the spec to read: the phase's "## Phase N" block, or everything.
+section() {
+  if [[ -n "$PHASE" ]]; then
+    awk -v phase="$PHASE" '
+      /^## / { in_phase = ($0 ~ "^## Phase " phase "([^0-9]|$)") }
+      in_phase { print }
+    ' "$SPEC"
+  else
+    cat "$SPEC"
+  fi
+}
+
+# Within that, only the "### Tests to Write" subsection(s).
+named=$(section | awk '
+  /^### / { in_tests = ($0 ~ /^### Tests to Write/) }
+  in_tests { print }
+' | grep -oE '`test_[A-Za-z0-9_]+`' | tr -d '`' | sort -u || true)
+
+if [[ -z "$named" ]]; then
+  echo "check-spec-tests: ${ID}: the spec names no test_ identifiers; nothing to check."
+  exit 0
+fi
+
+defined=$(grep -rhoE '^[[:space:]]*(async[[:space:]]+)?def[[:space:]]+test_[A-Za-z0-9_]+' $TEST_DIRS 2>/dev/null \
+  | sed -E 's/.*def[[:space:]]+//' | sort -u || true)
+
+missing=$(comm -23 <(printf '%s\n' "$named") <(printf '%s\n' "$defined") || true)
+total=$(printf '%s\n' "$named" | wc -l | tr -d ' ')
+
+if [[ -z "$missing" ]]; then
+  echo "check-spec-tests: ${ID}: all ${total} named tests are defined."
+  exit 0
+fi
+
+count=$(printf '%s\n' "$missing" | wc -l | tr -d ' ')
+echo "check-spec-tests: ${ID}: ${count} of ${total} named tests are not defined under ${TEST_DIRS}:"
+printf '  %s\n' $missing
+exit 1

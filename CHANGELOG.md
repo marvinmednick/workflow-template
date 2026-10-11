@@ -3,6 +3,249 @@
 Each version entry documents what changed and what existing projects need to do.
 Symlinked files (commands, scripts, stubs) auto-update — only skeleton file changes require manual action.
 
+## v34 (2026-10-11)
+
+### Summary
+
+Project-owned implementor rules now live in the required `PROJECT_AGENTS.md`. `AGENTS.md` contains shared text only
+and is replaced from the skeleton on every upgrade.
+
+### What changed
+
+- **`skeleton/AGENTS-template.md` and `skeleton/PROJECT_AGENTS-template.md`** — shared implementor rules and
+  project-owned rules are separate.
+- **`scripts/implement`** — loads `PROJECT_AGENTS.md` and stops when the required file is missing.
+- **`scripts/verify-repo`** — warns about a missing project rules file in v34 and fails from v35.
+- **`scripts/setup.sh`** — creates the project-owned rules file for new projects.
+- **`configs/`** (aider and Gemini) — loads `PROJECT_AGENTS.md` alongside the shared files.
+- **`commands/implement.md`** — requires the project-owned rules file.
+- **`upgrade-workflow`** — adds Step 1b to split project-specific rules from the shared file.
+- **Docs and templates** (`CLAUDE`, `WORKFLOW`, snippets, README) — describe the required project-owned file.
+- **`PROJECT_AGENT.md`** (v25, optional) was renamed to `PROJECT_AGENTS.md` and made required; no project had one.
+
+Scripts, commands and configs are symlinked into projects, so the changes from this release are live through
+symlinks. An existing project can therefore stop at `./implement` as soon as it picks up this release, until the
+project has `PROJECT_AGENTS.md`.
+
+### What existing projects need to do
+
+1. Run `/upgrade-workflow` (Step 1b), or by hand create `PROJECT_AGENTS.md`, move the project sections into it, and
+   replace `AGENTS.md` from the skeleton.
+2. Review and delete `AGENTS.md.bak`; do not commit it.
+3. Set `.workflow-version` to 34.
+
+---
+
+## v33 (2026-10-06)
+
+### Summary
+
+The implementor rules file was named `AGENT.md`, but Codex auto-loads `AGENTS.md`, so Codex only saw the
+rules because `./implement` named the old file in its prompt. The file is now `AGENTS.md` everywhere.
+
+### What changed
+
+- **`skeleton/AGENT-template.md`** renamed to **`skeleton/AGENTS-template.md`**; its heading is `# AGENTS.md`.
+- **`scripts/implement`, `implement.md`, `complete.md`, `review.md`, `spec.md`, `design.md`,
+  `design-review.md`, `upgrade-workflow.md`** — every reference to the rules file names `AGENTS.md`.
+- **`configs/.aider.conf.yml`, `configs/.gemini/settings.json`** — load `AGENTS.md` (symlinked, so live).
+- **`scripts/setup.sh`, `README.md`, `skeleton/CLAUDE-template.md`, `skeleton/WORKFLOW-template.md`,
+  `skeleton/snippets/`** — new projects get `AGENTS.md`, and the docs name it.
+- **`upgrade-workflow.md`** — new Step 1a performs the rename in existing projects, backing up any existing
+  `AGENTS.md` as `AGENTS.md.bak`.
+- **Not changed:** the optional `PROJECT_AGENT.md` keeps its name.
+
+### What existing projects need to do
+
+1. Run `/upgrade-workflow`; Step 1a renames `AGENT.md` to `AGENTS.md`, keeps any existing `AGENTS.md` as
+   `AGENTS.md.bak`, and updates the project's own references. Manually: `cp AGENTS.md AGENTS.md.bak` (if it
+   exists), `git mv -f AGENT.md AGENTS.md`, then fix references in `CLAUDE.md` and `WORKFLOW.md`.
+2. Review and delete `AGENTS.md.bak`; do not commit it.
+3. Set `.workflow-version` to 33.
+
+Command and script changes are live through the symlinks, so `./implement` expects `AGENTS.md` immediately.
+Do the rename before the next `./implement` run.
+
+---
+
+## v32 (2026-10-06)
+
+### Summary
+
+Across one feature (daystrom-patent-analysis F25: 8, 3 and 3+ review rounds for its phases 2, 3 and 4) the
+same findings recurred, and each was a check that the implementor's report or the reviewer's first pass did
+not cover. Tests that cannot fail (placeholder assertions, an assertion on a file that never exists, a test
+that checks its own list comprehension) let real bugs through a green suite. The implementor ran only the
+test command and reported "verification complete" while lint failed, twice. A tool was delivered as a stub
+that recorded all-zero results. 27 of 38 and 30 of 44 named tests were missing at the first review.
+Behaviour that only appears against the running system was first seen by the reviewer, late.
+
+### What changed
+
+- **`scripts/implement`** — new optional `.implement.conf` key `GATE_CMD` (the project's full check as the implementor can run it
+  locally, for example `./scripts/check`; a CI-only target with hardcoded service credentials will not work). When set, the implementor's prompt requires it to exit 0 after the final test run and
+  forbids lint suppressions. The prompt also now states four rules up front: every test must be able to fail,
+  write every named test (record renames in the progress file), no placeholder or zero data to make a tool
+  look as if it works, and tests must not write inside the repository.
+- **`scripts/check-spec-tests`** (new) — `./check-spec-tests F[N].[P]` lists the `test_` names in the spec's
+  `### Tests to Write` (backtick-quoted) that no `def test_` under `TEST_DIRS` (default `tests`) defines. Exit 1
+  when any are missing. Python-style tests only; a spec that names none exits 0.
+- **`review.md`** — a new block before the project checklist, run every round: the project gate
+  (`GATE_CMD`); named tests exist (`./check-spec-tests`); tests can fail (read for placeholders and
+  self-referential assertions, and prove the highest-risk behaviours against a broken scratch copy, never in
+  the tree); run the new tool or command once for real, bounded and read-only, in round 1.
+- **`spec.md`** — `### Tests to Write` names tests as backtick-quoted identifiers, says which behaviour each
+  must catch, and advises splitting a phase beyond about 30 tests or 15 files.
+- **`skeleton/AGENT-template.md`** — Test Rules 4 to 7 (the rules above and the gate), for new projects.
+- **`scripts/setup.sh`, `scripts/verify-links`** — link and check `check-spec-tests`.
+
+### What existing projects need to do
+
+1. Link the new script: `ln -s <template>/scripts/check-spec-tests ./check-spec-tests` (or re-run `setup.sh`;
+   `verify-links` reports it missing until then).
+2. Optional but recommended: add `GATE_CMD=<your full check>` (one that passes on a developer machine, not a CI-only target) to
+   `.implement.conf`, and `TEST_DIRS=tests` if your tests live elsewhere.
+3. Optional: copy Test Rules 4 to 7 from `skeleton/AGENT-template.md` into the project's `AGENT.md`. The
+   `implement` prompt already carries them, so this only helps tools that read `AGENT.md` alone.
+4. Set `.workflow-version` to 32.
+
+Command and script changes are live through the symlinks. Not changed: `/review-plan`; consider asking it to
+check that a plan names every test and says how the gate is run.
+
+---
+
+## v31 (2026-10-05)
+
+### Summary
+
+`./implement` and `/review-impl` call `./check-tests --if-stale` so a still-valid test result is not
+re-run, but on a daystrom-patent-analysis session (F25.2 fix passes) the suite re-ran at the start of
+every fix pass. The staleness check compared `.last-test-output.txt` with every file listed by
+`git diff --name-only HEAD`, and each review round edits `WORK_LOG.md`, `PLAN.md` and the feature
+log right after running the tests, so the saved result was always older than the newest changed file.
+The same check could not see untracked files (new modules and tests), so it could also report a stale
+result as fresh.
+
+### What changed
+
+- **`scripts/check-tests`** — `--if-stale` now looks at tracked changes plus untracked, non-ignored
+  files (`git ls-files --others --exclude-standard`), and ignores workflow tracking and prose files by
+  default: `WORK_LOG.md`, `PLAN.md`, `BACKLOG.md`, `IDEAS.md`, `plans/`, `specs/`. The saved output
+  file is always ignored. Override the pattern with `STALE_IGNORE_REGEX=<extended regex on
+  repo-relative paths>` in `.implement.conf` (an override replaces the default list). Deleted files no
+  longer break the check. The message now says "no relevant changes since".
+- **`complete.md`, `review.md`** — wording only: they say which files do not count.
+
+### What existing projects need to do
+
+Nothing. All changed files are symlinked. Optional: add `STALE_IGNORE_REGEX` to `.implement.conf` if the
+project keeps other prose or generated files that should not invalidate a test run. Not changed: the
+implementor's own test runs (plain `TEST_CMD`) do not write `.last-test-output.txt`; only `check-tests`
+does.
+
+---
+
+## v30 (2026-10-04)
+
+### Summary
+
+v29 fixed the implementor rigidly matching illustrative markup, but left the actual enforcement
+soft: `review.md` said to judge screens "against the user's own look at the built screen," which
+read as the reviewer's own inference about what the user would think, not a requirement that the
+user actually look and respond. On a daystrom-patent-analysis session (F24, Celery run queue —
+three phases, each with real screens by phase 3), the reviewer ran `/review-impl` to `Passed` for
+every UI-touching phase purely from code/test review — same failure, third time, despite v29's
+fix — and the user had never seen or used any of the screens. No gate anywhere actually stopped
+`Passed` from being set without the user's sign-off.
+
+### What changed
+
+- **`review.md`** — new "UI Review Gate" section (any phase that adds or changes a screen, with or
+  without a Legacy Parity Matrix): look at the running screen yourself first, then show the user and
+  wait for their actual response, then record it. New ledger header field `**UI Review:** [N/A |
+  Pending | Confirmed]` and a new `## UI Review` section (same required-before-`Passed` treatment as
+  `## Doc Updates`). `Status: Passed` is now blocked while `UI Review` is anything but `N/A` or
+  `Confirmed` — added explicitly to the Convergence rule and the per-round checklist, and to the
+  round summary reported to the user.
+- **`complete.md`** — phase-close Step 1 (Verify) now also checks the ledger's `UI Review` field
+  before closing a phase; a missing field (an older ledger) is treated the same as `Pending`, not
+  waved through.
+
+### What existing projects need to do
+
+Command changes are live (symlinked). No skeleton file changed; set `.workflow-version` to 30. A
+ledger already `Passed` under the old rules is not retroactively reopened by this version, but any
+phase not yet closed should get a `UI Review` pass before `/complete`.
+
+---
+
+## v29 (2026-10-02)
+
+### Summary
+
+v23–v25 fixed "the implementor's hands were tied trying to match legacy pixel-for-pixel" — but only
+for screens with a Legacy Parity Matrix (an existing reference screen to compare against). A
+daystrom-patent-analysis session (F20, named patent sets) hit the same failure mode on a screen with
+**no** legacy equivalent: the spec's sample HTML/Alpine code, written to verify the UI mechanics held
+together, silently became the de facto contract once handed to the implementor (Codex, in this case),
+who then matched it closely rather than using judgment — recreating the exact "20 revisions to ship a
+simple screen" problem v23 was meant to solve, just outside the one case that fix covered.
+
+### What changed
+
+- **`spec.md`** — new "Binding vs. illustrative detail" subsection under Mid-Spec Interaction,
+  applying to any screen's spec, with or without a Legacy Parity Matrix: data model, routes,
+  permissions and state ownership are binding; markup, CSS, exact copy and layout proportions are a
+  reference only, and the spec must say so explicitly and invite the implementor to iterate on them
+  directly with the user rather than via a full re-spec round. Without a matrix, there is no external
+  ground truth at all, so skipping this split is the common failure mode — state it every time a spec
+  includes UI markup.
+- **`review.md`** — new note alongside the Legacy parity check: a deviation from the spec's
+  illustrative markup is not itself a finding; judge screens against Acceptance Criteria, the binding
+  tier, and the user's own look at the built screen. A spec that gave no illustrative-detail split for
+  a screen is itself a spec-review finding.
+
+### What existing projects need to do
+
+Command changes are live (symlinked). No skeleton file changed; set `.workflow-version` to 29.
+
+---
+
+## v28 (2026-09-30)
+
+### Summary
+
+Codex could not use the workflow commands: Codex discovers skills as `.agents/skills/<name>/SKILL.md`
+(with YAML frontmatter), not `.claude/commands/`. `claude-stubs/` is now the single manifest for both
+tools — each stub's filename, first line, and `commands/<x>.md` target generate a Codex skill wrapper.
+
+### What changed
+
+- **`codex-skills/<name>/SKILL.md`** (new, generated, committed) — thin wrappers for all 14 stubs that
+  tell Codex to read and follow `commands/<target>.md`. Regenerate with `scripts/gen-codex-skills.sh`
+  after adding or editing a stub; `--check` reports drift (also run by `verify-repo`).
+- **`codex-skills.d/<name>.conf`** (new, optional) — per-skill `description=`/`arguments=` overrides
+  for the generator; set for `investigate`, `resolve`, `triage`, `complete`, `review-plan`, `spec`.
+- **`scripts/workflow-lib.sh`** (new, sourced) — `stub_names`, `stub_target`, `command_files`,
+  `link_codex_skills`.
+- **`setup.sh`, `update-workflow`, `verify-links`** — command and stub lists are now derived from
+  `claude-stubs/` instead of hardcoded (fixes `revise.md` missing from `setup.sh`/`verify-links`
+  commands, `review-impl`/`revise` missing from `verify-links` stubs). They also link/verify
+  `.agents/skills/<name>/SKILL.md`. `update-workflow` now refreshes links, so new stubs reach existing
+  projects.
+
+### Skeleton file changes (review and update existing projects)
+
+- None. Run `./update-workflow` (or `/upgrade-workflow`) once to create the `.agents/skills/` links.
+  Hand-written `.agents/skills/<name>/SKILL.md` files must be removed first; `verify-links` reports
+  them as real files and will not overwrite them.
+
+### New skeleton files
+- None
+
+### New required project files
+- None
+
 ---
 
 ## v27 (2026-09-29)

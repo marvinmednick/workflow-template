@@ -30,9 +30,9 @@
 # Tool selection: --tool arg > IMPLEMENT_TOOL env > .implement.conf > error
 # Model selection: --model arg > IMPLEMENT_MODEL env > .implement.conf
 #
-# For aider, AGENT.md and CODING.md are auto-loaded via .aider.conf.yml.
-# For Gemini CLI, AGENT.md and CODING.md are auto-loaded via .gemini/settings.json.
-# For Codex, AGENTS.md is auto-loaded; prompt also explicitly requires AGENT.md + CODING.md.
+# For aider, AGENTS.md, PROJECT_AGENTS.md and CODING.md are auto-loaded via .aider.conf.yml.
+# For Gemini CLI, AGENTS.md, PROJECT_AGENTS.md and CODING.md are auto-loaded via .gemini/settings.json.
+# For Codex, AGENTS.md is auto-loaded; the prompt also explicitly requires PROJECT_AGENTS.md + CODING.md.
 #
 # Configuration (in .implement.conf):
 #   tool=codex
@@ -40,6 +40,7 @@
 #   TEST_CMD=npm --prefix client test -- --watchAll=false
 #   PREFLIGHT_CMD=curl -sf http://localhost:8000/health/   # optional; must succeed before tests run
 #   PREFLIGHT_HELP=Start the stack first: ./dsc.sh start all  # optional; shown when preflight fails
+#   GATE_CMD=make ci   # optional; the project's full check (lint, format, strict checks, tests); must exit 0 before the implementor reports done
 #   KNOWN_FILE=client/known-test-failures.txt
 #   SPEC_FILE_PATTERN=client|supabase/migrations
 #   AIDER_REFERENCE_FILE=client/components/__tests__/MyFile-test.tsx   # optional
@@ -90,6 +91,13 @@ if [[ -z "$SPEC_ID" ]]; then
   exit 1
 fi
 
+if [[ ! -f PROJECT_AGENTS.md ]]; then
+  TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
+  echo "Error: PROJECT_AGENTS.md is required in the project root."
+  echo "Create it with: cp \"$TEMPLATE/skeleton/PROJECT_AGENTS-template.md\" PROJECT_AGENTS.md"
+  exit 1
+fi
+
 # Phase syntax: F4.2 = phase 2 of feature F4. The spec, design and issue belong to F4; the plan,
 # progress file and review ledger belong to the phase (plans/F4.2-*).
 BASE_ID="$SPEC_ID"
@@ -110,6 +118,7 @@ SPEC_FILE_PATTERN=""
 AIDER_REFERENCE_FILE=""
 PREFLIGHT_CMD=""
 PREFLIGHT_HELP=""
+GATE_CMD=""
 
 if [[ -f "$CONFIG_FILE" ]]; then
   CONFIG_TOOL=$(grep '^tool=' "$CONFIG_FILE" | head -1 | sed 's/^tool=//' | tr -d '[:space:]' || true)
@@ -119,6 +128,7 @@ if [[ -f "$CONFIG_FILE" ]]; then
   SPEC_FILE_PATTERN=$(grep '^SPEC_FILE_PATTERN=' "$CONFIG_FILE" | head -1 | sed 's/^SPEC_FILE_PATTERN=//' | tr -d '[:space:]' || true)
   PREFLIGHT_CMD=$(grep '^PREFLIGHT_CMD=' "$CONFIG_FILE" | head -1 | sed 's/^PREFLIGHT_CMD=//' || true)
   PREFLIGHT_HELP=$(grep '^PREFLIGHT_HELP=' "$CONFIG_FILE" | head -1 | sed 's/^PREFLIGHT_HELP=//' || true)
+  GATE_CMD=$(grep '^GATE_CMD=' "$CONFIG_FILE" | head -1 | sed 's/^GATE_CMD=//' || true)
   AIDER_REFERENCE_FILE=$(grep '^AIDER_REFERENCE_FILE=' "$CONFIG_FILE" | head -1 | sed 's/^AIDER_REFERENCE_FILE=//' | tr -d '[:space:]' || true)
 fi
 
@@ -321,14 +331,20 @@ fi
 # Notes appended to the implementor's prompt.
 PHASE_NOTE=""
 if [[ -n "$PHASE" ]]; then
-  PHASE_NOTE=" This is phase ${PHASE} of ${BASE_ID}. The spec file you were given contains only this phase; implement phase ${PHASE} only, and do not start, prepare or partially implement any other phase. Use ${SPEC_ID} wherever AGENT.md says F[N]. When phase ${PHASE} is done, STOP; do not continue."
+  PHASE_NOTE=" This is phase ${PHASE} of ${BASE_ID}. The spec file you were given contains only this phase; implement phase ${PHASE} only, and do not start, prepare or partially implement any other phase. Use ${SPEC_ID} wherever AGENTS.md says F[N]. When phase ${PHASE} is done, STOP; do not continue."
 fi
 PREFLIGHT_NOTE=""
 if [[ -n "$PREFLIGHT_CMD" ]]; then
   PREFLIGHT_NOTE=" Before your final test run, run the preflight check '${PREFLIGHT_CMD}'. If it fails, it may be your sandbox blocking a local connection, not the service: request elevated execution for that same command and retry once. Only if the retry also fails or is refused, stop and tell the user${PREFLIGHT_HELP:+ (${PREFLIGHT_HELP})}. Never skip or deselect tests to get around it."
 fi
-REPORT_NOTE=" End your final message with the End-of-Run Report in the exact format defined in AGENT.md, including the exact next steps for the user."
-SUFFIX="${PHASE_NOTE}${PREFLIGHT_NOTE}${REPORT_NOTE}"
+GATE_NOTE=""
+if [[ -n "$GATE_CMD" ]]; then
+  GATE_NOTE=" After the final test run, run the project gate '${GATE_CMD}' (lint, format, strict checks). It must exit 0 before you report done; a passing test run alone is not completion. Fix what it reports without lint suppressions (noqa and the like) or skipped checks, rerun it, and paste its final lines. If your own fix pass changes files, run it again."
+fi
+# Rules the reviewer keeps having to enforce; stated up front.
+QUALITY_NOTE=" Every test you write must be able to fail: no placeholder assertions (for example asserting that a function is callable or that a temporary path exists), no assertion on a value the test computes itself, and no test whose precondition is never reached. Write every test the spec or plan names; if you rename one, record the old and new name in the progress file. Never record placeholder or zero data to make a tool or script look as if it works: if part of it is not implemented, say so under Issues in the progress file and stop. Tests must not write inside the repository, and never leave or restore a generated file to make a run pass."
+REPORT_NOTE=" End your final message with the End-of-Run Report in the exact format defined in AGENTS.md, including the exact next steps for the user."
+SUFFIX="${PHASE_NOTE}${PREFLIGHT_NOTE}${GATE_NOTE}${QUALITY_NOTE}${REPORT_NOTE}"
 PLAN_SUFFIX="${PHASE_NOTE}"
 
 # Capture test baseline before implementation begins (skip during plan-only mode)
@@ -353,18 +369,18 @@ fi
 
 case "$TOOL" in
   codex)
-    # AGENTS.md is auto-loaded by Codex; prompt also explicitly requires AGENT.md + CODING.md
-    # to guarantee both are loaded regardless of auto-discovery behavior.
+    # AGENTS.md is auto-loaded by Codex; the prompt explicitly requires PROJECT_AGENTS.md + CODING.md
+    # because Codex does not auto-load those project files.
     # Runs in interactive mode (no exec/--full-auto) so sessions can be continued
     # by typing 'continue' rather than restarting from scratch after a timeout.
-    CONTEXT_PREFIX="First read AGENT.md and CODING.md in full. Confirm you have read both before making any changes. "
+    CONTEXT_PREFIX="First read AGENTS.md, PROJECT_AGENTS.md and CODING.md in full. Confirm you have read all three before making any changes. "
     CODEX_ARGS=()
     if [[ -n "$MODEL" ]]; then
       CODEX_ARGS+=(-m "$MODEL")
     fi
 
     if [[ "$PLAN_MODE" == true ]]; then
-      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary.${PLAN_SUFFIX}"
+      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENTS.md. Do not write any code. After writing the plan, output a summary.${PLAN_SUFFIX}"
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
       PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     else
@@ -378,9 +394,9 @@ case "$TOOL" in
     ;;
 
   gemini)
-    # AGENT.md and CODING.md are auto-loaded via .gemini/settings.json
+    # AGENTS.md, PROJECT_AGENTS.md and CODING.md are auto-loaded via .gemini/settings.json
     if [[ "$PLAN_MODE" == true ]]; then
-      PROMPT="Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and wait for my approval. Type \"approved\" to proceed with implementation.${PLAN_SUFFIX}"
+      PROMPT="Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENTS.md. Do not write any code. After writing the plan, output a summary and wait for my approval. Type \"approved\" to proceed with implementation.${PLAN_SUFFIX}"
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
       PROMPT="The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved by Claude and the user. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     else
@@ -392,7 +408,7 @@ case "$TOOL" in
     ;;
 
   aider)
-    # AGENT.md and CODING.md are auto-loaded via .aider.conf.yml
+    # AGENTS.md, PROJECT_AGENTS.md and CODING.md are auto-loaded via .aider.conf.yml
     # --yes: auto-accept all file-addition prompts (no interactive confirmations)
     CMD_ARGS=(--yes)
     if [[ -n "$MODEL" ]]; then
@@ -406,7 +422,7 @@ case "$TOOL" in
       # to add them to the chat (which interferes with the plan-file write).
       touch "$PLAN_FILE"
       CMD_ARGS+=("$PLAN_FILE")
-      CMD_ARGS+=(--message "$(printf 'Feature spec for %s:\n\n%s\n\nTask: Write an implementation plan to %s following the Plan Mode format in AGENT.md.\nRules:\n- Write ONLY to %s\n- Do NOT add any other files to the chat\n- Do NOT write any implementation code\n- After writing the plan file, print a one-paragraph summary and stop' \
+      CMD_ARGS+=(--message "$(printf 'Feature spec for %s:\n\n%s\n\nTask: Write an implementation plan to %s following the Plan Mode format in AGENTS.md.\nRules:\n- Write ONLY to %s\n- Do NOT add any other files to the chat\n- Do NOT write any implementation code\n- After writing the plan file, print a one-paragraph summary and stop' \
         "$SPEC_ID" "$(< "$SPEC_FILE")" "$PLAN_FILE" "$PLAN_FILE")")
       echo "Running: aider (plan mode — spec inlined, writing to $PLAN_FILE)"
       echo ""
@@ -475,10 +491,10 @@ case "$TOOL" in
 
   claude)
     # Launches claude CLI as a new subprocess — isolated context, no conversation history.
-    # AGENT.md and CODING.md are loaded via the prompt; the agent reads them itself.
-    CONTEXT_PREFIX="Read AGENT.md and CODING.md in full before making any changes. "
+    # AGENTS.md, PROJECT_AGENTS.md and CODING.md are loaded via the prompt; the agent reads them itself.
+    CONTEXT_PREFIX="Read AGENTS.md, PROJECT_AGENTS.md and CODING.md in full before making any changes. "
     if [[ "$PLAN_MODE" == true ]]; then
-      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENT.md. Do not write any code. After writing the plan, output a summary and stop.${PLAN_SUFFIX}"
+      PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENTS.md. Do not write any code. After writing the plan, output a summary and stop.${PLAN_SUFFIX}"
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
       PROMPT="${CONTEXT_PREFIX}The approved plan in $APPROVED_PLAN_FILE has been reviewed and approved. Check $PROGRESS_FILE for a progress log — if present, read the completed files to confirm their state and continue from where the previous session left off; otherwise start fresh. Maintain $PROGRESS_FILE throughout: append a progress entry after each file. After all files are implemented, run '$TEST_CMD' and fix any failing tests and rerun only until they pass -- if the initial run already passes, do not run the full suite again. List all files changed and paste the final test output when done.${SUFFIX}"
     else

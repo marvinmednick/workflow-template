@@ -10,6 +10,7 @@
 set -euo pipefail
 
 TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
+source "$TEMPLATE/scripts/workflow-lib.sh"
 
 if [[ ! -d "$TEMPLATE" ]]; then
   echo "Error: workflow-template not found at $TEMPLATE"
@@ -28,17 +29,19 @@ done
 
 echo ""
 echo "Linking commands/..."
-mkdir -p commands
-for cmd in complete.md design.md design-review.md feature.md fix-baseline.md \
-           implement.md investigate.md resolve.md review-plan.md spec.md triage.md \
-           review.md upgrade-workflow.md; do
-  ln -sf "$TEMPLATE/$cmd" "commands/$cmd"
-  echo "  linked commands/$cmd"
-done
+if in_template_root; then
+  echo "  skipped (this is the template: commands/ holds the real files)"
+else
+  mkdir -p commands
+  for cmd in $(command_files); do
+    ln -sf "$TEMPLATE/commands/$cmd" "commands/$cmd"
+    echo "  linked commands/$cmd"
+  done
+fi
 
 echo ""
 echo "Linking scripts..."
-for script in implement check-tests check-workflow create-feature-issue.sh gh-aliases.sh update-workflow verify-links verify-repo; do
+for script in implement check-tests check-spec-tests check-workflow create-feature-issue.sh gh-aliases.sh update-workflow verify-links verify-repo; do
   ln -sf "$TEMPLATE/scripts/$script" "./$script"
   chmod +x "./$script"
   echo "  linked $script"
@@ -47,12 +50,15 @@ done
 echo ""
 echo "Linking Claude Code stubs..."
 mkdir -p .claude/commands
-for stub in complete.md design.md design-review.md feature.md fix-baseline.md \
-            implement.md investigate.md resolve.md review-impl.md review-plan.md \
-            spec.md triage.md upgrade-workflow.md; do
+for name in $(stub_names); do
+  stub="$name.md"
   ln -sf "$TEMPLATE/claude-stubs/$stub" ".claude/commands/$stub"
   echo "  linked .claude/commands/$stub"
 done
+
+echo ""
+echo "Linking Codex skills..."
+link_codex_skills
 
 echo ""
 echo "Linking configs..."
@@ -85,7 +91,8 @@ echo "  1. Copy and customize skeleton files:"
 echo "       cp $TEMPLATE/skeleton/.implement.conf .implement.conf"
 echo "       cp $TEMPLATE/skeleton/REVIEW-template.md REVIEW.md"
 echo "       cp $TEMPLATE/skeleton/WORKFLOW-template.md WORKFLOW.md"
-echo "       cp $TEMPLATE/skeleton/AGENT-template.md AGENT.md"
+echo "       cp $TEMPLATE/skeleton/AGENTS-template.md AGENTS.md"
+echo "       cp $TEMPLATE/skeleton/PROJECT_AGENTS-template.md PROJECT_AGENTS.md"
 echo "       cp $TEMPLATE/skeleton/CODING-template.md CODING.md"
 echo "       cp $TEMPLATE/skeleton/DESIGN-template.md DESIGN.md"
 echo "       cp $TEMPLATE/skeleton/DOCUMENTATION-CONVENTIONS-template.md architecture/01-documentation-conventions.md"

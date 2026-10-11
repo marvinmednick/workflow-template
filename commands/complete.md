@@ -8,7 +8,11 @@ issue.
 1. **Verify.** `plans/F[N].[P]-review.md` reads `Status: Passed`; `plans/F[N].[P]-progress.md` exists and
    its last entry is a reconciling one; the full test suite passes (run it if `./check-tests --if-stale`
    says the saved result is stale; the preflight from `.implement.conf` must be satisfied, never skip
-   tests).
+   tests). If the ledger's `UI Review` field is anything but `N/A` or `Confirmed` — including if the
+   field is missing entirely, from a ledger written before this check existed — stop: do not close
+   the phase on a clean test run alone when a screen changed and nobody outside the review actually
+   looked at it. Get the user's own look (per `review.md`'s UI Review Gate) and the ledger updated
+   first.
 2. **Commit** the phase (stage specific files, including the phase's plan, progress and ledger):
    `feat(F[N].[P]): <what the phase delivered>` with `refs #[N]` in the body. Ask the user to confirm the
    message and file list first.
@@ -53,7 +57,7 @@ Run the suite, skipping the re-run if the saved results are still fresh (nothing
 ./check-tests --show-known --if-stale
 ```
 
-`--if-stale` skips the run and reports the saved result when `.last-test-output.txt` is newer than any uncommitted source change — typical when `/review-impl` or the implementor already ran tests on the current tree. The suite runs in full when anything has changed since the last run.
+`--if-stale` skips the run and reports the saved result when `.last-test-output.txt` is newer than any uncommitted or new source change (workflow tracking and prose files — `WORK_LOG.md`, `PLAN.md`, `BACKLOG.md`, `IDEAS.md`, `plans/`, `specs/` — are ignored; see `STALE_IGNORE_REGEX`) — typical when `/review-impl` or the implementor already ran tests on the current tree. The suite runs in full when anything has changed since the last run.
 
 If unexpected failures are found: stop and report them. Do not proceed until the baseline is clean. If failures are pre-existing and known, note them and continue.
 
@@ -64,7 +68,7 @@ If unexpected failures are found: stop and report them. Do not proceed until the
 **For features (F[N]): check the progress file first.**
 
 Read `plans/F[N]-progress.md`:
-- If it does **not exist**: warn the user — it should always be created by the implementor (per AGENT.md). Do not proceed until this is resolved.
+- If it does **not exist**: warn the user — it should always be created by the implementor (per AGENTS.md). Do not proceed until this is resolved.
 - If Status ≠ `Complete`: this is a **blocking** issue — the implementor has not finished. Stop and report.
 - If Issues is non-empty: flag each item before proceeding — these may represent deviations or unresolved problems that affect the commit.
 

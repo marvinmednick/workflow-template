@@ -1,0 +1,24 @@
+# Links created by scripts/setup.sh (the template uses itself as a project; commands/ is real here)
+/.agents/
+/.claude/
+/.codex/
+/.gemini/
+/.aider.conf.yml
+/.workflow-version
+/implement
+/check-tests
+/check-spec-tests
+/check-workflow
+/create-feature-issue.sh
+/gh-aliases.sh
+/update-workflow
+/verify-links
+/verify-repo
+
+# Test run output
+/.last-test-output.txt
+__pycache__/
+.pytest_cache/
+
+# generated per-phase spec slices written by ./implement
+.implement-cache/

@@ -3,7 +3,8 @@
 
 # Always read these files for context (but don't edit them)
 read:
-  - AGENT.md
+  - AGENTS.md
+  - PROJECT_AGENTS.md
   - CODING.md
 
 # Don't auto-commit — let the user review changes first

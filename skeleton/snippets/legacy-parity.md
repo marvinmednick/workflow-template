@@ -7,7 +7,7 @@ and the approved suggestions; every other difference is a defect. If legacy beha
 cannot reproduce it in the new system, do not decide: stop, record it under Open questions in the
 End-of-Run Report (or under Ambiguities in the plan), and let the user decide. Report every remaining
 difference from legacy, with its explanation, under Deviations. Where the project has a gate command for
-legacy comparison (named in `AGENT.md`/`PROJECT_AGENT.md` and the spec), run it after every group of
+legacy comparison (named in `AGENTS.md`/`PROJECT_AGENTS.md` and the spec), run it after every group of
 changes; do not report a phase done until it exits zero, paste its final output in the End-of-Run Report,
 and look at every side-by-side image it lists (a passing gate is necessary, not sufficient). The gate
 fails only on checks, captures and the hack scan; the measured differences it prints are advisory. **You

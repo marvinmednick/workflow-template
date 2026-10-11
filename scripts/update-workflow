@@ -15,10 +15,21 @@ if [[ ! -d "$TEMPLATE" ]]; then
   echo "Error: workflow-template not found at $TEMPLATE"
   exit 1
 fi
+source "$TEMPLATE/scripts/workflow-lib.sh"
 
 echo "Updating workflow-template clone..."
 git -C "$TEMPLATE" pull --quiet
 echo "  ✓ All symlinked files up to date (commands/, scripts, stubs, configs)"
+echo ""
+
+# New stubs need new links (existing links update by themselves)
+echo "Refreshing command, stub, and Codex skill links..."
+mkdir -p commands .claude/commands
+if ! in_template_root; then
+  for cmd in $(command_files); do ln -sf "$TEMPLATE/commands/$cmd" "commands/$cmd"; done
+fi
+for name in $(stub_names); do ln -sf "$TEMPLATE/claude-stubs/$name.md" ".claude/commands/$name.md"; done
+link_codex_skills
 echo ""
 
 # Check whether the project is current with the new template version
