@@ -39,3 +39,11 @@
 - **Result:** Passed — all blocking resolved; non-blocking verified
 - **Tests:** 38/38 passed
 - **Ledger:** plans/F2.2-review.md
+
+## 2026-10-11 — Phase 2 closed
+- **Commit:** 3bb1e31 `feat(F2.2): load PROJECT_AGENTS.md in every tool, hard-stop ./implement without it`
+- **Tests:** 38/38 passed; GATE_CMD, verify-links and check-spec-tests (13/13) clean
+- **Review:** plans/F2.2-review.md Passed in round 2 (3 findings, all verified)
+- **Manual verification:** none required by the user; reviewer ran `./implement` and `./verify-repo` for real in a scratch copy without the file (stop message, warning, exit 0)
+- **Hazard:** phase 2 is live in every linked project once merged; do not release without phase 3 (upgrade step, CHANGELOG, VERSION 34)
+- **Next phase:** `/spec F2.3`, then `./implement F2.3 --plan`
