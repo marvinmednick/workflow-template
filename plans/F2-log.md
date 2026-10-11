@@ -69,3 +69,7 @@
 - **Review:** plans/F2.3-review.md Passed in round 2 (4 findings, all verified)
 - **Manual verification:** dry-runs on scratch copies (patent-analysis, literal v33 skeleton, daystrom-patent-analysis, second pass) recorded in plans/F2.3-progress.md and re-read by the reviewer; the user's own check that `./implement` prompts name both files in a migrated project is still open
 - **Next:** `/complete F2` closes the feature and issue #2
+
+## 2026-10-11 — Shipped
+- **Commit:** `feat(F2.3): v34 migration (upgrade-workflow Step 1b), changelog and version bump` (final phase; phases at 77da107, 3bb1e31, 6f5160d)
+- **Closed:** #2
