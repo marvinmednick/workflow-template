@@ -3,6 +3,37 @@
 Each version entry documents what changed and what existing projects need to do.
 Symlinked files (commands, scripts, stubs) auto-update — only skeleton file changes require manual action.
 
+## v34 (2026-10-11)
+
+### Summary
+
+Project-owned implementor rules now live in the required `PROJECT_AGENTS.md`. `AGENTS.md` contains shared text only
+and is replaced from the skeleton on every upgrade.
+
+### What changed
+
+- **`skeleton/AGENTS-template.md` and `skeleton/PROJECT_AGENTS-template.md`** — shared implementor rules and
+  project-owned rules are separate.
+- **`scripts/implement`** — loads `PROJECT_AGENTS.md` and stops when the required file is missing.
+- **`scripts/verify-repo`** — warns about a missing project rules file in v34 and fails from v35.
+- **`scripts/setup.sh`** — creates the project-owned rules file for new projects.
+- **`configs/`** (aider and Gemini) — loads `PROJECT_AGENTS.md` alongside the shared files.
+- **`commands/implement.md`** — requires the project-owned rules file.
+- **`upgrade-workflow`** — adds Step 1b to split project-specific rules from the shared file.
+- **Docs and templates** (`CLAUDE`, `WORKFLOW`, snippets, README) — describe the required project-owned file.
+- **`PROJECT_AGENT.md`** (v25, optional) was renamed to `PROJECT_AGENTS.md` and made required; no project had one.
+
+Scripts, commands and configs are symlinked into projects, so the changes from this release are live through
+symlinks. An existing project can therefore stop at `./implement` as soon as it picks up this release, until the
+project has `PROJECT_AGENTS.md`.
+
+### What existing projects need to do
+
+1. Run `/upgrade-workflow` (Step 1b), or by hand create `PROJECT_AGENTS.md`, move the project sections into it, and
+   replace `AGENTS.md` from the skeleton.
+2. Review and delete `AGENTS.md.bak`; do not commit it.
+3. Set `.workflow-version` to 34.
+
 ---
 
 ## v33 (2026-10-06)

@@ -292,16 +292,18 @@ progress file which tests failed.
 ---
 
 ## Phase 3 — Migration, changelog and version
-<!-- detail: pending -->
+<!-- detail: written 2026-10-11 -->
 
 ### Goal
 Existing projects can move to the split safely; ship it as v34.
 
 ### Entry criteria
-Phases 1 and 2 closed.
+Phases 1 and 2 closed (`Phase 1 closed` and `Phase 2 closed` in `plans/F2-log.md`). Phase 2 is already live in every
+linked project, so this phase and the release must go out together.
 
 ### Acceptance Criteria
-- `commands/upgrade-workflow.md` gains Step 1b (project version below 34), implementing this migration:
+- `commands/upgrade-workflow.md` gains Step 1b (project version below 34), after Step 1a and before the "Process each
+  skeleton file change" step, implementing this migration:
   1. If `PROJECT_AGENTS.md` exists, read it; it is kept and appended to, never overwritten.
   2. Compare the project's `AGENTS.md` with the **v33** `AGENTS-template.md` (the template repo's last v33 copy is
      `git show 65f1fd1:skeleton/AGENTS-template.md`; Phase 1 has since changed the working copy). Move to `PROJECT_AGENTS.md` only:
@@ -309,23 +311,89 @@ Phases 1 and 2 closed.
      beyond the skeleton's; the content of the `PROJECT-SPECIFIC` block.
   3. Flag, but do not move or decide, anything else that differs from the v33 skeleton (reworded shared rules,
      stack substitutions in Test Rules 1–3 such as `pytest.skip` / `uv run pytest`, older shared text from
-     skipped versions). List each hunk; the user decides; stack substitutions are typically appended to
-     `PROJECT_AGENTS.md`.
+     skipped versions, sections or paragraphs appended inside shared sections). List each hunk; the user decides;
+     stack substitutions are typically appended to `PROJECT_AGENTS.md`.
   4. If `AGENTS.md` has no customisation, write `PROJECT_AGENTS.md` from the skeleton (placeholders only) with no
      questions. A project with no `PROJECT_AGENTS.md` and nothing to move still gets the stub (decision 7).
+     "No customisation" means that after step 2 nothing is left to move and step 3 flags nothing.
   5. Show the proposed `PROJECT_AGENTS.md`, the new skeleton `AGENTS.md` and the flagged hunks; apply only after
-     approval.
+     approval. If the project's `AGENTS.md` shares almost nothing with the v33 skeleton (for example a short hand-written
+     file), present the whole file as one flagged hunk and never replace it without approval.
   6. On approval: save the old `AGENTS.md` as `AGENTS.md.bak` (not committed; stop and ask if one exists), write
      `PROJECT_AGENTS.md`, replace `AGENTS.md` with the skeleton, update the project's own `CLAUDE.md`/`WORKFLOW.md`
      rows.
   After v34, `/upgrade-workflow` treats `AGENTS.md` as "replace from skeleton" with no customisation check and
   never touches `PROJECT_AGENTS.md`. The old "unclear" example about customised `AGENTS.md` boundaries
-  (lines ~147–158) is updated to match.
+  (lines ~147–158) is updated to match (use a different file for the example; wording is yours).
 - `CHANGELOG.md` v34 entry (summary; what changed; what projects must do; the symlink hazard from Context;
   "`PROJECT_AGENT.md` (v25, optional) renamed to `PROJECT_AGENTS.md` and made required; no project had one") and
-  `VERSION` = 34.
-- Verified by dry-run on copies, results pasted into the End-of-Run Report: patent-analysis's `AGENTS.md` (the
-  proposed `PROJECT_AGENTS.md` keeps its four boundaries and Test Rules 3–5 content; stack substitutions are
-  flagged, not silently moved) and a project with an untouched skeleton `AGENTS.md` (needs no user decision);
-  and a later `/upgrade-workflow` leaves `PROJECT_AGENTS.md` untouched.
+  `VERSION` = 34. The entry says that `./implement` stops without the file and `verify-repo` warns in v34 and fails
+  from v35.
+- Verified by dry-run on copies, results pasted into the End-of-Run Report. Run Step 1b by hand on scratch copies
+  (never on the real projects):
+  - `~/Development/daystrom/patent-analysis/AGENTS.md`: the proposed `PROJECT_AGENTS.md` keeps its four boundaries; its
+    Test Rules 4 (type hints) and 5 (`.env`) are moved as additions, and rules 1–3 (`pytest.skip`, sleeps,
+    `uv run pytest`) are flagged with a proposal to append them, so that after the user approves all of Test Rules 1–5
+    appear in the proposal and none moved silently.
+  - A literal v33 skeleton `AGENTS.md` (from `git show 65f1fd1:skeleton/AGENTS-template.md`): no user decision, stub only.
+  - `~/Development/daystrom/daystrom-patent-analysis/AGENTS.md` (appended Legacy Parity section, wrapper-script list and
+    protected-file paragraphs inside shared sections, Test Rules rewritten, a `PROJECT-SPECIFIC` comment): the
+    appended project text is flagged hunk by hunk, not moved without a decision and not lost.
+  - A later `/upgrade-workflow` on a migrated copy leaves `PROJECT_AGENTS.md` untouched and replaces `AGENTS.md` from
+    the skeleton without a customisation check.
 - `./implement F2.3 --plan` style prompts in a migrated project name both files (manual check).
+
+### Files to Modify
+- `commands/upgrade-workflow.md` — add Step 1b as above; update the "unclear" example (lines ~147–158); in the
+  per-file loop state that from v34 `AGENTS.md` is replaced from the skeleton and `PROJECT_AGENTS.md` is never touched.
+- `CHANGELOG.md` — v34 entry at the top, same shape as v33.
+- `VERSION` — `34`.
+- The local `.workflow-version` of this repo (untracked): set to `34` as the last step so `./check-workflow` reports
+  current.
+
+Generated files: `commands/upgrade-workflow.md` feeds a Codex skill, so run `scripts/gen-codex-skills.sh` if
+`--check` reports drift and include the regenerated skill file.
+
+### New Files
+- `tests/test_f2_migration.py` — pytest in the style of `tests/test_template.py`.
+
+### Database / Schema Changes
+None.
+
+### Tests to Write
+File: `tests/test_f2_migration.py`. The migration itself is an LLM procedure, so these tests pin its text, the
+release metadata and the version check; the dry-runs above are the behavioural proof.
+- `test_step_1b_sits_between_1a_and_the_skeleton_loop` → headings order is Step 1a, Step 1b, then "Process each
+  skeleton file change"; Step 1b names "below 34". Catches a misplaced or missing step.
+- `test_step_1b_says_what_moves_and_what_is_flagged` → Step 1b names `Project-Specific Architecture Boundaries`,
+  `PROJECT-SPECIFIC`, `pytest.skip`, and the words "flag" and "never overwritten". Catches a vague rule that would
+  move too much or too little.
+- `test_step_1b_requires_backup_and_approval` → Step 1b names `AGENTS.md.bak`, says it is not committed, says to stop
+  and ask if it exists, and says nothing is applied before approval. Catches a destructive migration.
+- `test_step_1b_points_at_the_v33_skeleton` → Step 1b contains `65f1fd1`. Catches a comparison against the new
+  skeleton, which would flag everything.
+- `test_skeleton_loop_replaces_agents_and_spares_project_file` → the per-file loop text says `AGENTS.md` is replaced
+  from the skeleton and `PROJECT_AGENTS.md` is never touched; the old sentence "has already been customized with
+  project-specific boundaries" is gone. Catches the stale "unclear" example surviving.
+- `test_version_is_34` → `VERSION` reads `34`. Catches a forgotten bump.
+- `test_changelog_top_entry_is_v34_with_required_parts` → the first `## v` heading is v34 with `### Summary`,
+  `### What changed`, `### What existing projects need to do`, and mentions `PROJECT_AGENTS.md`, `v25`, "no project
+  had one", `v35` and the live-through-symlinks hazard. Catches an incomplete entry.
+- `test_changelog_v34_names_every_changed_area` → the v34 entry names `skeleton/AGENTS-template.md`,
+  `skeleton/PROJECT_AGENTS-template.md`, `scripts/implement`, `scripts/verify-repo`, `scripts/setup.sh`, `configs/`
+  and `upgrade-workflow`. Catches a changelog that omits a change projects feel.
+- `test_check_workflow_flags_a_v33_project` → a `tmp_path` project with `.workflow-version` = 33 and
+  `WORKFLOW_TEMPLATE_DIR` set to this repo: `check-workflow` exits 1 and mentions v34; with `34` it exits 0. Catches a
+  VERSION or CHANGELOG that projects cannot detect.
+
+Each test must be able to fail: run the file against the Phase 2 tree and note in the progress file which tests
+failed.
+
+### Manual verification (user)
+- In a scratch copy of a migrated project, `./implement <ID> --plan` with a fake or real tool shows both
+  `AGENTS.md` and `PROJECT_AGENTS.md` in the prompt.
+- Read the three dry-run outputs in the End-of-Run Report and confirm the proposals match the criteria above.
+
+### Gate
+`TEST_CMD` and `GATE_CMD` (`.implement.conf`); `./verify-links` passes; `./check-workflow` in this repo reports
+current at v34. Do not push or tag.

@@ -97,11 +97,44 @@ The `.aider.conf.yml` and `.gemini/settings.json` entries are symlinks into the 
 `AGENTS.md`. `./implement` now tells every tool to read `AGENTS.md`, so it fails to find the rules until this
 step is done.
 
+## Step 1b — Split project rules into `PROJECT_AGENTS.md` (project version below 34)
+
+1. If `PROJECT_AGENTS.md` exists, read it in full. Keep it and append to it; it is never overwritten.
+2. Compare the project's `AGENTS.md` with the **v33** skeleton, obtained from the template repository with:
+   ```bash
+   git -C ~/Development/workflow_template show 65f1fd1:skeleton/AGENTS-template.md
+   ```
+   Use the template clone path resolved by the project's `verify-links` symlink in place of
+   `~/Development/workflow_template` when it differs. The current skeleton is the new version; the v33 copy is the
+   comparison baseline. Match rules by meaning, not by number: a rule with no counterpart in the v33 skeleton is an
+   addition. Move to `PROJECT_AGENTS.md` only:
+   - the `Project-Specific Architecture Boundaries` entries;
+   - Coding Rules and Test Rules the project added beyond the skeleton's; and
+   - the content of the `PROJECT-SPECIFIC` block.
+3. Flag, but do not move or decide, everything else that differs from the v33 skeleton: reworded shared rules,
+   stack substitutions in Test Rules 1–3 (such as `pytest.skip` / `uv run pytest`), older shared text from skipped
+   versions, and sections or paragraphs appended inside shared sections. List each hunk; the user decides. Stack
+   substitutions are typically proposed for appending to `PROJECT_AGENTS.md`.
+4. If nothing is left to move after step 2 and step 3 flags nothing ("no customisation"), write
+   `PROJECT_AGENTS.md` from the skeleton with placeholders only and no questions. A project with no
+   `PROJECT_AGENTS.md` and nothing to move still gets the stub. If `AGENTS.md` shares almost nothing with the v33
+   skeleton (for example, it is a short hand-written file), present the whole file as one flagged hunk and never
+   replace it without approval.
+5. Show the proposed `PROJECT_AGENTS.md`, the new skeleton `AGENTS.md`, and every flagged hunk. Apply nothing before
+   approval; apply only after approval.
+6. If Step 1a just made an `AGENTS.md.bak`, the user must finish comparing it and delete it before this step
+   continues. Do not commit `AGENTS.md.bak`.
+7. On approval, save the old `AGENTS.md` as `AGENTS.md.bak` (not committed). If `AGENTS.md.bak` already exists,
+   stop and ask the user; do not overwrite it. Then write `PROJECT_AGENTS.md`, replace `AGENTS.md` with the skeleton,
+   and update the project's own `CLAUDE.md` / `WORKFLOW.md` rows.
+
 ---
 
 ## Step 1 — Process each skeleton file change
 
-For each item listed under "Skeleton file changes" in the relevant CHANGELOG entries, do the following:
+From v34 onward, `AGENTS.md` is replaced from the skeleton with no customisation check, and `PROJECT_AGENTS.md` is never touched.
+
+For each other item listed under "Skeleton file changes" in the relevant CHANGELOG entries, do the following:
 
 ### Read the current state of both files
 
@@ -144,11 +177,10 @@ If declined: note it as skipped and continue to the next item.
 
 Tell the user specifically what's ambiguous:
 ```
-File: AGENTS.md
-Change: CHANGELOG says "add project-specific boundaries section"
-Issue: Your AGENTS.md has already been customized with project-specific boundaries
-       that differ from the skeleton. I cannot safely auto-apply without risk of
-       overwriting your customizations.
+File: WORKFLOW.md
+Change: CHANGELOG adds a new workflow section
+Issue: Your WORKFLOW.md has significant customization in the affected area, so I cannot
+       safely apply the structural change without risking unrelated project behavior.
 
 Options:
   1. Show me both versions — I'll decide what to keep

@@ -47,3 +47,18 @@
 - **Manual verification:** none required by the user; reviewer ran `./implement` and `./verify-repo` for real in a scratch copy without the file (stop message, warning, exit 0)
 - **Hazard:** phase 2 is live in every linked project once merged; do not release without phase 3 (upgrade step, CHANGELOG, VERSION 34)
 - **Next phase:** `/spec F2.3`, then `./implement F2.3 --plan`
+
+## 2026-10-11 — Phase 3 detail written (/spec F2.3)
+- **Spec:** Phase 3 section of `specs/F2-project-rules-split.md` (marker now `detail: written`)
+- **Changes to the picture:** real projects show the migration meets appended sections inside shared sections and hand-written AGENTS.md files, so Step 1b flags those hunks; dry-run fixtures are now patent-analysis, a literal v33 skeleton and daystrom-patent-analysis; patent-analysis Test Rules 4–5 move as additions and 1–3 are flagged with an append proposal.
+
+## 2026-10-11 — Phase 3 (F2.3) review round 1 (Needs Fixes)
+- **Result:** Needs Fixes — 2 blocking, 2 non-blocking still open
+- **This round:** new 4, verified 0, reopened 0
+- **Next:** run `./implement F2.3` to address open findings, then `/review-impl F2.3` again
+- **Ledger:** plans/F2.3-review.md
+
+## 2026-10-11 — Phase 3 (F2.3) review round 2 (Passed)
+- **Result:** Passed — all blocking resolved; non-blocking verified
+- **Tests:** 47/47 passed
+- **Ledger:** plans/F2.3-review.md
