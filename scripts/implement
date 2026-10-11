@@ -30,9 +30,9 @@
 # Tool selection: --tool arg > IMPLEMENT_TOOL env > .implement.conf > error
 # Model selection: --model arg > IMPLEMENT_MODEL env > .implement.conf
 #
-# For aider, AGENTS.md and CODING.md are auto-loaded via .aider.conf.yml.
-# For Gemini CLI, AGENTS.md and CODING.md are auto-loaded via .gemini/settings.json.
-# For Codex, AGENTS.md is auto-loaded; prompt also explicitly requires AGENTS.md + CODING.md.
+# For aider, AGENTS.md, PROJECT_AGENTS.md and CODING.md are auto-loaded via .aider.conf.yml.
+# For Gemini CLI, AGENTS.md, PROJECT_AGENTS.md and CODING.md are auto-loaded via .gemini/settings.json.
+# For Codex, AGENTS.md is auto-loaded; the prompt also explicitly requires PROJECT_AGENTS.md + CODING.md.
 #
 # Configuration (in .implement.conf):
 #   tool=codex
@@ -88,6 +88,13 @@ if [[ -z "$SPEC_ID" ]]; then
   echo "Usage: ./implement <ID> [--tool codex|gemini|aider] [--model <model>] [--plan [--force]]"
   echo ""
   echo "  ID must be a feature ID (F1), issue ID (I4) or a phase (F4.2)"
+  exit 1
+fi
+
+if [[ ! -f PROJECT_AGENTS.md ]]; then
+  TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
+  echo "Error: PROJECT_AGENTS.md is required in the project root."
+  echo "Create it with: cp \"$TEMPLATE/skeleton/PROJECT_AGENTS-template.md\" PROJECT_AGENTS.md"
   exit 1
 fi
 
@@ -362,11 +369,11 @@ fi
 
 case "$TOOL" in
   codex)
-    # AGENTS.md is auto-loaded by Codex; the prompt also explicitly requires AGENTS.md + CODING.md
-    # to guarantee both are loaded regardless of auto-discovery behavior.
+    # AGENTS.md is auto-loaded by Codex; the prompt explicitly requires PROJECT_AGENTS.md + CODING.md
+    # because Codex does not auto-load those project files.
     # Runs in interactive mode (no exec/--full-auto) so sessions can be continued
     # by typing 'continue' rather than restarting from scratch after a timeout.
-    CONTEXT_PREFIX="First read AGENTS.md and CODING.md in full. Confirm you have read both before making any changes. "
+    CONTEXT_PREFIX="First read AGENTS.md, PROJECT_AGENTS.md and CODING.md in full. Confirm you have read all three before making any changes. "
     CODEX_ARGS=()
     if [[ -n "$MODEL" ]]; then
       CODEX_ARGS+=(-m "$MODEL")
@@ -387,7 +394,7 @@ case "$TOOL" in
     ;;
 
   gemini)
-    # AGENTS.md and CODING.md are auto-loaded via .gemini/settings.json
+    # AGENTS.md, PROJECT_AGENTS.md and CODING.md are auto-loaded via .gemini/settings.json
     if [[ "$PLAN_MODE" == true ]]; then
       PROMPT="Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENTS.md. Do not write any code. After writing the plan, output a summary and wait for my approval. Type \"approved\" to proceed with implementation.${PLAN_SUFFIX}"
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then
@@ -401,7 +408,7 @@ case "$TOOL" in
     ;;
 
   aider)
-    # AGENTS.md and CODING.md are auto-loaded via .aider.conf.yml
+    # AGENTS.md, PROJECT_AGENTS.md and CODING.md are auto-loaded via .aider.conf.yml
     # --yes: auto-accept all file-addition prompts (no interactive confirmations)
     CMD_ARGS=(--yes)
     if [[ -n "$MODEL" ]]; then
@@ -484,8 +491,8 @@ case "$TOOL" in
 
   claude)
     # Launches claude CLI as a new subprocess — isolated context, no conversation history.
-    # AGENTS.md and CODING.md are loaded via the prompt; the agent reads them itself.
-    CONTEXT_PREFIX="Read AGENTS.md and CODING.md in full before making any changes. "
+    # AGENTS.md, PROJECT_AGENTS.md and CODING.md are loaded via the prompt; the agent reads them itself.
+    CONTEXT_PREFIX="Read AGENTS.md, PROJECT_AGENTS.md and CODING.md in full before making any changes. "
     if [[ "$PLAN_MODE" == true ]]; then
       PROMPT="${CONTEXT_PREFIX}Read $SPEC_FILE. Write an implementation plan to $PLAN_FILE using the Plan Mode section format in AGENTS.md. Do not write any code. After writing the plan, output a summary and stop.${PLAN_SUFFIX}"
     elif [[ "$HAS_APPROVED_PLAN" == true ]]; then

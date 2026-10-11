@@ -5,12 +5,14 @@
 #   - gh CLI authenticated and GitHub remote configured
 #   - All required workflow labels exist in the repo
 #   - Required project directories and files are present
+#   - PROJECT_AGENTS.md is present (warning in v34; v35 turns this into a failure)
 #   - .workflow-version file exists
 
 set -euo pipefail
 
 TEMPLATE="${WORKFLOW_TEMPLATE_DIR:-$(cd "$(dirname "$(realpath "$0")")/.." && pwd)}"
 ISSUES=()
+WARNINGS=()
 OK=0
 SKIP_LABELS=false
 
@@ -22,6 +24,11 @@ check_ok() {
 check_fail() {
   echo "  ✗ $1"
   ISSUES+=("$1")
+}
+
+check_warn() {
+  echo "  ⚠ $1"
+  WARNINGS+=("$1")
 }
 
 # ── GitHub auth + remote ──────────────────────────────────────────────────────
@@ -93,6 +100,13 @@ for file in PLAN.md BACKLOG.md IDEAS.md; do
   fi
 done
 
+if [[ -f "PROJECT_AGENTS.md" ]]; then
+  check_ok "file: PROJECT_AGENTS.md"
+else
+  # v35 turns this check into check_fail.
+  check_warn "file missing: PROJECT_AGENTS.md   (cp $TEMPLATE/skeleton/PROJECT_AGENTS-template.md PROJECT_AGENTS.md)"
+fi
+
 if [[ -f ".workflow-version" ]]; then
   version=$(tr -d '[:space:]' < .workflow-version)
   check_ok ".workflow-version = $version"
@@ -112,9 +126,13 @@ fi
 # ── Summary ───────────────────────────────────────────────────────────────────
 echo ""
 if [[ ${#ISSUES[@]} -eq 0 ]]; then
-  echo "All $OK checks passed."
+  if [[ ${#WARNINGS[@]} -eq 0 ]]; then
+    echo "All $OK checks passed."
+  else
+    echo "All $OK checks passed with ${#WARNINGS[@]} warning(s)."
+  fi
   exit 0
 fi
 
-echo "${#ISSUES[@]} issue(s) found ($OK passed)."
+echo "${#ISSUES[@]} issue(s) found ($OK passed, ${#WARNINGS[@]} warning(s))."
 exit 1

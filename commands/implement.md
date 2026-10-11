@@ -4,6 +4,8 @@ Implement the spec: $ARGUMENTS
 
 Identify the spec ID from $ARGUMENTS (e.g. `F1`, `I4`, or `F4.2` for phase 2 of a phased feature).
 
+If `PROJECT_AGENTS.md` is missing from the project root, stop and tell the user to copy `skeleton/PROJECT_AGENTS-template.md` to `PROJECT_AGENTS.md`.
+
 **Phased features.** If the ID is `F[N].[P]`, the spec file is found by the base ID (`F[N]`), the
 implementor is given only the shared sections plus `## Phase [P]` (write the slice with the same `awk`
 that `./implement` uses, or simply run `./implement F[N].[P]`), and every artifact name uses the full
@@ -50,7 +52,9 @@ You will pass this exact command to the implementation agent.
 Use the Agent tool to launch a fresh implementor agent with this prompt (substitute actual values for `[ID]`, `[spec-path]`, `[TEST_CMD]`):
 
 ```
-You are the implementation agent for this project. Read AGENTS.md and CODING.md in full before making any changes to code.
+You are the implementation agent for this project. Read AGENTS.md, PROJECT_AGENTS.md and CODING.md in full before making any changes to code.
+
+If `PROJECT_AGENTS.md` is missing from the project root, stop and tell the user to copy `skeleton/PROJECT_AGENTS-template.md` to `PROJECT_AGENTS.md`.
 
 Your task: implement `[spec-path]`.
 

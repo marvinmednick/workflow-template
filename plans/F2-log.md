@@ -28,3 +28,14 @@
 - **Review:** plans/F2.1-review.md Passed in round 2 (5 findings, all verified)
 - **Manual verification:** none required (no screens)
 - **Next phase:** Phase 3 note added (v33 skeleton is `git show 65f1fd1:skeleton/AGENTS-template.md`); Phase 2 detail already written. Run `./implement F2.2 --plan`.
+
+## 2026-10-10 — Phase 2 (F2.2) review round 1 (Needs Fixes)
+- **Result:** Needs Fixes — 2 blocking, 1 non-blocking still open
+- **This round:** new 3, verified 0, reopened 0
+- **Next:** run `./implement F2.2` to address open findings, then `/review-impl F2.2` again
+- **Ledger:** plans/F2.2-review.md
+
+## 2026-10-10 — Phase 2 (F2.2) review round 2 (Passed)
+- **Result:** Passed — all blocking resolved; non-blocking verified
+- **Tests:** 38/38 passed
+- **Ledger:** plans/F2.2-review.md
