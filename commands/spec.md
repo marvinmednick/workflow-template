@@ -333,6 +333,8 @@ List each architectural doc that will need updating when this feature ships, and
 
 **If the project uses architecture forks** (see `architecture/01-documentation-conventions.md`, present only in projects with an `architecture/` directory): name the **fork**, not its base, wherever one is open. Check for a `<name>_<ID>.md` beside any `<name>.md` you are about to list. An update written against the base while a fork is open edits shipped truth and is lost when the fork merges. Where this feature is itself the open work, the fork it will create is the doc to name.
 
+List architecture documents (and design docs) only. Project guidance files such as `CLAUDE.md` are not a feature log: do not list a status-line update for each feature. In projects with an `architecture/` directory, each entry must be writable under the standalone rule in `architecture/01-documentation-conventions.md` — the described text carries no feature, issue, phase or milestone identifiers, no links to design docs, specs or plans, and no history or status narrative.
+
 If no architectural docs need updating: "None." (`CODING.md` updates go in "Files to Modify" and are handled by the implementor.)
 
 ### Suggestions (AI-generated)

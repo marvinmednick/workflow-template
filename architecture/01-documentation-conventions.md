@@ -21,6 +21,26 @@ forward-looking material live there and do not move into `architecture/`.
 The two are separated by *kind*, not by maturity. A design doc keeps its decisions log forever; what
 migrates to `architecture/` is the description of the mechanism those decisions produced.
 
+### An architecture document stands alone
+
+A reader needs nothing outside `architecture/` and the code to understand how the system works. So a
+shipped architecture document:
+
+1. **Does not link to or cite** design docs, specs, plans, review ledgers, issues or the integration
+   notes. Links to other architecture documents are fine. A fork banner, which exists only while the
+   work is open and goes at the merge, is the one exception.
+2. **Does not name the work.** No feature, issue, phase or milestone identifiers (`F28`, `#28`,
+   "phase 3", `M3.5`). They are renumbered, closed and reopened, and a document that carries them
+   depends on the history of the work and not on the system.
+3. **Does not narrate history or status.** No "was dropped", "built in", "not yet built", "at the
+   close of", test counts at a point in time, or "nothing calls this yet". It says what the system has
+   and does now, in the present tense. A limit that matters to a reader is stated as a present fact.
+4. **Names sections for mechanisms**, not for the features that built them.
+
+Why something was built, what was rejected and the order it was built in belong in `docs/design/`, in
+specs and in the feature log. A review ledger's Doc Updates, and `/complete` Step 3.5 when it applies
+them, are held to these rules.
+
 ---
 
 ## Keeping the set current

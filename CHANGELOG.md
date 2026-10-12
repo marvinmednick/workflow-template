@@ -3,6 +3,41 @@
 Each version entry documents what changed and what existing projects need to do.
 Symlinked files (commands, scripts, stubs) auto-update — only skeleton file changes require manual action.
 
+## v35 (2026-10-11)
+
+### Summary
+
+Architecture documents stand alone. The conventions now say a shipped architecture document carries no feature,
+issue, phase or milestone identifiers, no links to design docs, specs or plans, and no history or status
+narrative, and the Doc Updates instructions point at that rule.
+
+### What changed
+
+- **`architecture/01-documentation-conventions.md` and `skeleton/DOCUMENTATION-CONVENTIONS-template.md`** — new
+  section *An architecture document stands alone*.
+- **`commands/spec.md`** — Doc Updates lists architecture and design docs only, does not list a `CLAUDE.md`
+  status line per feature, and each architecture entry must satisfy the standalone rule.
+- **`commands/review.md`** — the ledger's Doc Updates comment says the same.
+- **`commands/complete.md`** — Step 3.5 applies architecture edits within the standalone rule.
+- **Not changed:** `scripts/verify-repo` still warns, not fails, on a missing `PROJECT_AGENTS.md`; the failure
+  that v34 announced for v35 is a separate change.
+
+The command changes are symlinked, so they are live in every project. The conventions section is a copy and
+needs a manual step.
+
+### What existing projects need to do
+
+1. In a project with an `architecture/` directory, copy the section *An architecture document stands alone* from
+   `skeleton/DOCUMENTATION-CONVENTIONS-template.md` into `architecture/01-documentation-conventions.md`, after the
+   paragraph that ends "…the mechanism those decisions produced."
+2. Sweep the existing architecture documents for feature, issue, phase and milestone identifiers (for example
+   `grep -nE '\bF[0-9]+\b|#[0-9]+|[Pp]hase [0-9]|\bM[0-9]'`), for links into `docs/design/` and `specs/`, and for
+   history or status wording, and rewrite those passages in the present tense.
+3. Stop listing a `CLAUDE.md` status line in a spec's Doc Updates.
+4. Set `.workflow-version` to 35.
+
+---
+
 ## v34 (2026-10-11)
 
 ### Summary

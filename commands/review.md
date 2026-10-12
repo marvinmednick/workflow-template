@@ -230,6 +230,7 @@ field ownership** so neither side certifies its own work.
 <!-- Name the FORK, not its base, wherever one is open — see architecture/01-documentation-conventions.md -->
 - `architecture/some-doc.md` §Section: [concrete description of what to add or change — enough for Claude to open the file and make the edit without re-reading the whole feature]
 - `DESIGN.md` §Section: [what to update]
+<!-- Entries describe the system as it is: no feature, phase or milestone identifiers, no links to design docs or specs, no history (the standalone rule in architecture/01-documentation-conventions.md). Do not list a CLAUDE.md status line. -->
 <!-- If no architectural docs need updating, write: None -->
 ```
 

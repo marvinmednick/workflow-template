@@ -136,7 +136,9 @@ what to write; this step executes it.
 **Read the review ledger** (`plans/F[N]-review.md`) and find the `## Doc Updates` section:
 
 - **Section present with entries:** Apply each update directly. Read the target file, make the
-  targeted edit, and commit:
+  targeted edit (in an `architecture/` document, within the standalone rule in
+  `architecture/01-documentation-conventions.md`: no feature, phase or milestone identifiers, no links to
+  design docs or specs, no history), and commit:
   ```bash
   git add [doc files changed]
   git commit -m "docs: update [docs] for F[N] [feature name]"
