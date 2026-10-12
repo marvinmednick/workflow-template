@@ -64,14 +64,15 @@ def test_skeleton_loop_replaces_agents_and_spares_project_file():
     assert "has already been customized with project-specific boundaries" not in text
 
 
-def test_version_is_34():
-    assert (ROOT / "VERSION").read_text().strip() == "34"
-
-
-def test_changelog_top_entry_is_v34_with_required_parts():
+def test_version_matches_top_changelog_entry():
     text = (ROOT / "CHANGELOG.md").read_text()
-    first_heading = re.search(r"^## v\d+", text, re.MULTILINE)
-    assert first_heading and first_heading.group() == "## v34"
+    first_heading = re.search(r"^## v(\d+)", text, re.MULTILINE)
+    assert first_heading
+    assert (ROOT / "VERSION").read_text().strip() == first_heading.group(1)
+
+
+def test_changelog_v34_entry_has_required_parts():
+    text = (ROOT / "CHANGELOG.md").read_text()
     entry = _v34_entry(text)
     for phrase in (
         "### Summary",
@@ -112,6 +113,6 @@ def test_check_workflow_flags_a_v33_project(tmp_path):
     assert behind.returncode == 1
     assert "v34" in behind.stdout
 
-    version.write_text("34\n")
+    version.write_text((ROOT / "VERSION").read_text())
     current = subprocess.run([str(check)], cwd=project, env=env, capture_output=True, text=True)
     assert current.returncode == 0
