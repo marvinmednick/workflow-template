@@ -10,3 +10,8 @@
 - **Fix:** `tests/test_f2_migration.py` — version test now compares `VERSION` to the top changelog heading; the v34 entry test no longer requires v34 to be the top entry; the check-workflow test reads the current version from `VERSION`.
 - **Tests:** 47/47 passed. Gate (`gen-codex-skills.sh --check`) passes.
 - **Next:** commit the test fix.
+
+## 2026-10-11 — Shipped
+- **Commit:** `test(F7): make migration tests version-agnostic` (feature: `feat(F7): architecture documents stand alone; v35`)
+- **Closed:** #7
+- **Note:** Shipped without a spec, progress file or review ledger, by the user's decision.

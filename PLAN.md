@@ -14,7 +14,7 @@ The `F<N>` ID **always equals the GitHub issue number** (`F2` ⇔ `#2`). The lab
 | F2 | enhancement | Move project-specific implementor rules out of the shared `AGENTS.md` (v34) | Done | [specs/F2-project-rules-split.md](specs/F2-project-rules-split.md) | [#2](https://github.com/marvinmednick/workflow-template/issues/2) |
 | F3 | enhancement | Non-feature issues get an explicit lighter workflow | Backlog | — | [#3](https://github.com/marvinmednick/workflow-template/issues/3) |
 | F4 | enhancement | Standard locations for analysis, guides and tech debt | Backlog | — | [#4](https://github.com/marvinmednick/workflow-template/issues/4) |
-| F7 | enhancement | Architecture documents stand alone: rule in the conventions and the Doc Updates instructions (v35) | In Review | — | [#7](https://github.com/marvinmednick/workflow-template/issues/7) |
+| F7 | enhancement | Architecture documents stand alone: rule in the conventions and the Doc Updates instructions (v35) | Done | — | [#7](https://github.com/marvinmednick/workflow-template/issues/7) |
 
 ## Order
 
